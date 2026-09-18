@@ -10,11 +10,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    # Обе ветки: пока основной в репозитории значится claude/*, деплой
-    # разрешён только с неё — окружение github-pages пускает лишь ветку
-    # по умолчанию. После переключения default на main вторую строку
-    # можно убрать.
-    branches: [main, claude/inspiring-tesla-c67hzx]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
