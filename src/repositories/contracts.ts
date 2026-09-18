@@ -293,6 +293,24 @@ export interface AnalyticsRepository {
   getSummary(period: AnalyticsPeriod): Promise<AnalyticsSummary>
 }
 
+/* --- Файлы (ТЗ §26, §27) --------------------------------------------------- */
+
+export interface UploadedFile {
+  id: string
+  /** Готовый URL для вывода в <img>. */
+  url: string
+  name: string
+  sizeBytes: number
+}
+
+export interface StorageRepository {
+  /** Загружает изображение и возвращает ссылку для сохранения в товаре. */
+  upload(file: File, onProgress?: (percent: number) => void): Promise<UploadedFile>
+  remove(fileId: string): Promise<void>
+  /** Доступна ли реальная загрузка (иначе админка предложит вставить ссылку). */
+  isAvailable(): boolean
+}
+
 /* --- Аудит --------------------------------------------------------------- */
 
 export interface AuditRepository {
@@ -316,6 +334,7 @@ export interface Backend {
   homepage: HomepageAdminRepository
   analytics: AnalyticsRepository
   audit: AuditRepository
+  storage: StorageRepository
 }
 
 /* --- Ошибки -------------------------------------------------------------- */

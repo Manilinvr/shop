@@ -6,6 +6,7 @@ import { Suspense, useEffect } from 'react'
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom'
 import { CartDrawer } from '@/components/shop/CartDrawer'
 import { Spinner, ToastHost } from '@/components/ui'
+import { ErrorBoundary } from './ErrorBoundary'
 import { Footer } from './Footer'
 import { Header } from './Header'
 import { GrainLayer } from './GrainLayer'
@@ -37,9 +38,12 @@ export function Layout() {
         className="page-enter"
         key={location.pathname}
       >
-        <Suspense fallback={<Spinner center />}>
-          <Outlet />
-        </Suspense>
+        {/* Ошибка одной страницы не должна ронять весь сайт (ТЗ §41) */}
+        <ErrorBoundary resetKey={location.pathname}>
+          <Suspense fallback={<Spinner center />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <CartDrawer />}

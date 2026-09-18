@@ -49,8 +49,12 @@ export default function Settings() {
     {
       name: 'Telegram-уведомления',
       ready: false,
-      description: 'Сообщение владельцу о новом заказе с кнопками быстрых действий.',
-      envKeys: ['TELEGRAM_BOT_TOKEN (сервер)', 'TELEGRAM_OWNER_CHAT_ID (сервер)'],
+      description: 'Сообщение владельцу о новом заказе и смена статуса кнопками прямо из чата.',
+      envKeys: [
+        'TELEGRAM_BOT_TOKEN (сервер)',
+        'TELEGRAM_OWNER_CHAT_ID (сервер)',
+        'TELEGRAM_WEBHOOK_SECRET (сервер)',
+      ],
     },
     {
       name: 'Email-уведомления',
@@ -131,6 +135,15 @@ export default function Settings() {
           Эти значения задаются переменными окружения при сборке
           (<code>VITE_SITE_URL</code>, <code>VITE_SUPPORT_EMAIL</code>, <code>VITE_SUPPORT_PHONE</code>)
           и одинаковы на всём сайте.
+        </p>
+      </div>
+
+      <div className="panel" style={{ marginBottom: 14 }}>
+        <p className="panel__title">Как подключить</p>
+        <p className="admin-note">
+          Пошаговая инструкция по каждой интеграции — в файле{' '}
+          <code>docs/SETUP.md</code> в репозитории проекта. Там разобрано,
+          где взять ключи, куда их вставить и как проверить, что всё работает.
         </p>
       </div>
 

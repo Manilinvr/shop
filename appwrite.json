@@ -1,0 +1,90 @@
+{
+  "projectId": "PASTE_YOUR_PROJECT_ID",
+  "projectName": "MANILI",
+  "functions": [
+    {
+      "$id": "create-order",
+      "name": "MANILI — создание заказа",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/create-order"
+    },
+    {
+      "$id": "payment-webhook",
+      "name": "MANILI — webhook оплаты",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/payment-webhook"
+    },
+    {
+      "$id": "set-order-status",
+      "name": "MANILI — админские операции",
+      "runtime": "node-22",
+      "execute": ["users"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/set-order-status"
+    },
+    {
+      "$id": "check-promocode",
+      "name": "MANILI — проверка промокода",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 15,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/check-promocode"
+    },
+    {
+      "$id": "quote-delivery",
+      "name": "MANILI — расчёт доставки",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/quote-delivery"
+    },
+    {
+      "$id": "telegram-webhook",
+      "name": "MANILI — Telegram",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "npm install",
+      "path": "build/functions/telegram-webhook"
+    }
+  ]
+}

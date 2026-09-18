@@ -1,0 +1,45 @@
+.errbox {
+  min-height: 70svh;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--header-h) + 60px) var(--gutter) var(--section-y);
+}
+
+.errbox__inner {
+  max-width: 52ch;
+  text-align: center;
+  display: grid;
+  gap: var(--s-4);
+  justify-items: center;
+}
+
+.errbox__eyebrow {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.errbox__title {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+  color: var(--c-cream-100);
+}
+
+.errbox__text {
+  color: var(--c-text-dim);
+  line-height: var(--lh-loose);
+}
+
+.errbox__actions {
+  margin-top: var(--s-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}

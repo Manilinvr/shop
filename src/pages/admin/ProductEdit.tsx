@@ -22,6 +22,7 @@ import { kopecksToRubles, rublesToKopecks } from '@/domain/money'
 import { availableQuantity, SIZE_LABELS } from '@/domain/stock'
 import { PUBLISH_STATUSES } from '@/domain/types'
 import type { Product, PublishStatus, Size } from '@/domain/types'
+import { ImageUploader } from '@/components/admin/ImageUploader'
 import { slugify } from '@/lib/utils'
 import { backend, toUserMessage } from '@/repositories'
 import './admin.css'
@@ -71,6 +72,7 @@ export default function ProductEdit() {
   const isNew = productId === 'new'
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [images, setImages] = useState<string[]>([])
   const [stocks, setStocks] = useState<Record<string, number>>({})
   const [saving, setSaving] = useState(false)
 
@@ -104,6 +106,7 @@ export default function ProductEdit() {
       seoTitle: item.seoTitle ?? '',
       seoDescription: item.seoDescription ?? '',
     })
+    setImages(item.images.map((image) => image.url))
     setStocks(Object.fromEntries(item.variants.map((v) => [v.id, v.stock])))
   }, [product.data])
 
@@ -132,12 +135,18 @@ export default function ProductEdit() {
         isLimited: form.isLimited,
         seoTitle: form.seoTitle || null,
         seoDescription: form.seoDescription || null,
+        images: images.map((url, index) => ({
+          id: `${form.sku || 'img'}-${index}`,
+          url,
+          alt: null,
+          sortOrder: index,
+          isPrimary: index === 0,
+        })),
       }
 
       if (isNew) {
         const created = await backend.catalogAdmin.createProduct({
           ...patch,
-          images: [],
           videoUrl: null,
           popularity: 0,
           variants: DEFAULT_SIZES.map((size) => ({
@@ -412,10 +421,18 @@ export default function ProductEdit() {
 
           <div className="panel">
             <p className="panel__title">Фотографии</p>
-            <p className="admin-note">
-              Загрузка изображений подключается вместе с Appwrite Storage.
-              До этого карточка показывает фирменный плейсхолдер.
-            </p>
+            <ImageUploader
+              value={images}
+              onChange={setImages}
+              max={8}
+              hint="Первый кадр — главный в каталоге, второй показывается при наведении."
+            />
+            {images.length === 0 && (
+              <p className="admin-note" style={{ marginTop: 14 }}>
+                Пока фото нет, карточка показывает фирменный плейсхолдер —
+                сайт выглядит законченным и без съёмки.
+              </p>
+            )}
           </div>
         </aside>
       </div>

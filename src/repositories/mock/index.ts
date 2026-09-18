@@ -68,8 +68,12 @@ import type {
   PromocodeAdminRepository,
   PromocodeRepository,
   SortOption,
+  StorageRepository,
 } from '../contracts'
 import { DEMO_ADMIN, getDb, mutate, NETWORK_DELAY, nextOrderNumber, persist } from './db'
+
+/** Ограничение размера загружаемого изображения. */
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 import { FREE_DELIVERY_THRESHOLD } from './seed'
 import { emitOrderEvent } from '@/services/order-events'
 
@@ -1092,6 +1096,43 @@ const audit: AuditRepository = {
   },
 }
 
+/* --- Файлы ---------------------------------------------------------------- */
+
+/**
+ * Демо-хранилище. Файл превращается в data URL и остаётся в браузере —
+ * этого достаточно, чтобы посмотреть, как карточка выглядит с настоящим фото.
+ * В production файлы уходят в Appwrite Storage.
+ */
+const storage: StorageRepository = {
+  isAvailable: () => true,
+
+  async upload(file, onProgress) {
+    if (!file.type.startsWith('image/')) {
+      throw new AppError('BAD_FILE', 'Можно загружать только изображения.')
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      throw new AppError('FILE_TOO_BIG', `Файл больше ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} МБ.`)
+    }
+
+    const url = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
+      }
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(new AppError('UPLOAD_FAILED', 'Не удалось прочитать файл.'))
+      reader.readAsDataURL(file)
+    })
+
+    onProgress?.(100)
+    return { id: uid('file'), url, name: file.name, sizeBytes: file.size }
+  },
+
+  async remove() {
+    // В демо-режиме файл нигде не хранится отдельно — удалять нечего.
+  },
+}
+
 /* --- Сборка -------------------------------------------------------------- */
 
 export const mockBackend: Backend = {
@@ -1099,7 +1140,7 @@ export const mockBackend: Backend = {
   catalog, catalogAdmin, auth, favorites,
   promocodes, promocodesAdmin, delivery,
   orders, ordersAdmin, customersAdmin,
-  homepage, analytics, audit,
+  homepage, analytics, audit, storage,
 }
 
 /** Демо-вход в админку без backend (кнопка на странице входа). */

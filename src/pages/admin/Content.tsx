@@ -22,6 +22,7 @@ import {
   Textarea,
   showToast,
 } from '@/components/ui'
+import { ImageUploader } from '@/components/admin/ImageUploader'
 import { useAsync } from '@/hooks/useAsync'
 import type { HomepageBlock, HomepageBlockType } from '@/domain/types'
 import { backend, toUserMessage } from '@/repositories'
@@ -186,9 +187,8 @@ export default function Content() {
       </div>
 
       <div className="admin-note" style={{ marginTop: 20 }}>
-        <strong>Изображения.</strong> Пока подключён демо-режим, в поле изображения можно указать
-        плейсхолдер вида <code>placeholder:editorial/1</code> или прямую ссылку на картинку.
-        После подключения Appwrite Storage здесь появится загрузка файлов.
+        <strong>Порядок и видимость.</strong> Стрелками меняется порядок блоков на главной,
+        глазом — показ и скрытие. Изменения видны сразу, публиковать отдельно не нужно.
       </div>
 
       <Modal
@@ -240,12 +240,17 @@ export default function Content() {
                   onChange={(event) => setForm({ ...form, ctaHref: event.target.value })}
                 />
               </div>
-              <Input
-                label="Изображение"
-                value={form.image}
-                placeholder="placeholder:editorial/1"
-                onChange={(event) => setForm({ ...form, image: event.target.value })}
-              />
+              <div>
+                <p className="review-block__title" style={{ marginBottom: 10 }}>
+                  Изображение блока
+                </p>
+                <ImageUploader
+                  value={form.image ? [form.image] : []}
+                  onChange={(urls) => setForm({ ...form, image: urls[0] ?? '' })}
+                  max={1}
+                  hint="Один кадр. Можно загрузить файл или вставить ссылку."
+                />
+              </div>
             </>
           )}
 

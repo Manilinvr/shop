@@ -1,0 +1,107 @@
+.uploader { display: grid; gap: var(--s-4); }
+
+.uploader__grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+
+.uploader__item {
+  position: relative;
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.uploader__main {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--c-cream-100);
+  color: var(--c-ink-900);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.uploader__tools {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  background: linear-gradient(to top, rgba(10, 9, 8, 0.9), transparent);
+  opacity: 0;
+  transition: opacity var(--t-fast) var(--e-out);
+}
+@media (hover: hover) {
+  .uploader__item:hover .uploader__tools { opacity: 1; }
+}
+/* На тач-устройствах ховера нет — кнопки видны всегда */
+@media (hover: none) {
+  .uploader__tools { opacity: 1; }
+}
+
+.uploader__drop {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: clamp(24px, 4vw, 40px) 20px;
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--c-line-strong);
+  background: var(--c-ink-800);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--t-base) var(--e-out), background-color var(--t-base) var(--e-out);
+}
+@media (hover: hover) {
+  .uploader__drop:hover { border-color: var(--c-cream-400); background: var(--c-ink-700); }
+}
+.uploader__drop--over { border-color: var(--c-cream-200); background: var(--c-ink-600); }
+
+.uploader__drop-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  display: grid;
+  place-items: center;
+  color: var(--c-cream-300);
+}
+
+.uploader__drop-title { font-size: var(--fs-sm); color: var(--c-cream-200); }
+.uploader__drop-hint {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  max-width: 42ch;
+  line-height: var(--lh-normal);
+}
+
+.uploader__bar {
+  width: min(280px, 100%);
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--c-ink-500);
+  overflow: hidden;
+}
+.uploader__bar-fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--c-cream-200);
+  transition: width var(--t-base) var(--e-out);
+}
+
+.uploader__manual {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .uploader__manual { flex-direction: column; align-items: stretch; }
+}

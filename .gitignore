@@ -21,3 +21,6 @@ tsconfig*.tsbuildinfo
 src/**/*.js
 src/**/*.jsx
 vite.config.js
+
+# Подготовленные к деплою функции — собираются командой
+build/

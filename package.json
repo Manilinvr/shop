@@ -9,7 +9,10 @@
     "build": "tsc -b && vite build && node scripts/postbuild.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "setup:appwrite": "node scripts/setup-appwrite.mjs"
+    "setup:appwrite": "node scripts/setup-appwrite.mjs",
+    "functions:build": "node scripts/prepare-functions.mjs",
+    "seed:appwrite": "node scripts/seed-appwrite.mjs",
+    "telegram:register": "node scripts/register-telegram-webhook.mjs"
   },
   "dependencies": {
     "appwrite": "^16.1.0",

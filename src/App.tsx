@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { ErrorBoundary } from './components/layout/ErrorBoundary'
 import { routes } from './routes'
 import { useAuth } from './store/auth'
 import { backendReady } from './repositories'
@@ -16,5 +17,9 @@ export default function App() {
     void backendReady.then(() => init())
   }, [init])
 
-  return <RouterProvider router={router} />
+  return (
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  )
 }

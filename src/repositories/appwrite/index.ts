@@ -45,14 +45,18 @@ import type {
   PromocodeAdminRepository,
   PromocodeRepository,
   SortOption,
+  StorageRepository,
 } from '../contracts'
 import {
   account,
+  BUCKET_ID,
   COLLECTIONS,
   DB_ID,
   databases,
+  fileUrl,
   functions,
   FUNCTION_IDS,
+  storage,
 } from './client'
 import {
   toCategory,
@@ -722,10 +726,49 @@ const audit: AuditRepository = {
   },
 }
 
+/* --- Файлы: Appwrite Storage (ТЗ §26) -------------------------------------- */
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+
+const storageRepo: StorageRepository = {
+  isAvailable: () => Boolean(BUCKET_ID),
+
+  async upload(file, onProgress) {
+    if (!file.type.startsWith('image/')) {
+      throw new AppError('BAD_FILE', 'Можно загружать только изображения.')
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      throw new AppError('FILE_TOO_BIG', `Файл больше ${Math.round(MAX_UPLOAD_BYTES / 1024 / 1024)} МБ.`)
+    }
+
+    const created = await storage().createFile(
+      BUCKET_ID,
+      AppwriteID.unique(),
+      file,
+      undefined,
+      // SDK сообщает прогресс — показываем его в интерфейсе.
+      (progress) => onProgress?.(Math.round(progress.progress)),
+    )
+
+    return {
+      id: created.$id,
+      // Храним готовый URL: карточка товара не должна знать про Storage.
+      url: fileUrl(created.$id),
+      name: created.name,
+      sizeBytes: created.sizeOriginal,
+    }
+  },
+
+  async remove(fileId) {
+    await storage().deleteFile(BUCKET_ID, fileId)
+  },
+}
+
 export const appwriteBackend: Backend = {
   name: 'appwrite',
   catalog, catalogAdmin, auth, favorites,
   promocodes, promocodesAdmin, delivery,
   orders, ordersAdmin, customersAdmin,
   homepage, analytics, audit,
+  storage: storageRepo,
 }
