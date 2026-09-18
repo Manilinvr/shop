@@ -10,7 +10,11 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    # Обе ветки: пока основной в репозитории значится claude/*, деплой
+    # разрешён только с неё — окружение github-pages пускает лишь ветку
+    # по умолчанию. После переключения default на main вторую строку
+    # можно убрать.
+    branches: [main, claude/inspiring-tesla-c67hzx]
   workflow_dispatch:
 
 permissions:
@@ -60,7 +64,12 @@ jobs:
           VITE_MARKETPLACE_OZON: ${{ vars.VITE_MARKETPLACE_OZON }}
         run: npm run build
 
+      # enablement: true переключает Pages в режим «GitHub Actions» через API.
+      # Без этого при настройке «Deploy from a branch» окружение github-pages
+      # отклоняет деплой мгновенно, ещё до запуска шагов.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
