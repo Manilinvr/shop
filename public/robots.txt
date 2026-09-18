@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Личные и служебные разделы в индекс не нужны
+Disallow: /admin
+Disallow: /account
+Disallow: /checkout
+Disallow: /cart
+Disallow: /favorites
+Disallow: /login
+
+Sitemap: https://manili-event.ru/sitemap.xml

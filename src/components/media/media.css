@@ -1,0 +1,16 @@
+.media-ph {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.media {
+  /* Пока изображение грузится, зона не «прыгает» — фиксируем фон */
+  background: linear-gradient(160deg, var(--c-ink-700), var(--c-ink-900));
+}
+
+.media--sm { border-radius: var(--r-sm); }
+.media--md { border-radius: var(--r-md); }
+.media--lg { border-radius: var(--r-lg); }
+.media--xl { border-radius: var(--r-xl); }
+.media--blob { border-radius: var(--r-blob); }

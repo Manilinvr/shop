@@ -1,0 +1,31 @@
+.logo-word {
+  font-family: var(--f-display);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: flex-start;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.logo-word__reg {
+  font-size: 0.34em;
+  font-weight: 600;
+  margin-left: 0.14em;
+  margin-top: 0.15em;
+  opacity: 0.65;
+}
+
+.logo-img {
+  width: auto;
+  object-fit: contain;
+  user-select: none;
+}
+
+.logo--cream { color: var(--c-cream-100); }
+.logo--ink { color: var(--c-inv-text); }
+
+/* Инверсия SVG-логотипа под тёмную/светлую зону, если файл одноцветный */
+.logo-img.logo--ink { filter: invert(1) brightness(0.1); }

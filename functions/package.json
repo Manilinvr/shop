@@ -1,0 +1,13 @@
+{
+  "name": "manili-functions",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Серверные функции MANILI для Appwrite",
+  "dependencies": {
+    "node-appwrite": "^14.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

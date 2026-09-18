@@ -1,0 +1,276 @@
+/* ==========================================================================
+   MANILI — ОФОРМЛЕНИЕ ЗАКАЗА
+   ========================================================================== */
+
+.checkout-grid {
+  display: grid;
+  gap: clamp(24px, 3.5vw, 64px);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .checkout-grid { grid-template-columns: minmax(0, 1fr) 380px; }
+}
+
+.checkout-summary {
+  padding: clamp(22px, 2.6vw, 32px);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--c-line);
+  background: var(--c-ink-700);
+}
+@media (min-width: 960px) {
+  .checkout-summary { position: sticky; top: calc(var(--header-h) + 32px); }
+}
+
+.checkout-summary__title {
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  color: var(--c-cream-100);
+  margin-bottom: var(--s-5);
+}
+
+.checkout-summary__back { margin-top: 10px; }
+
+.checkout-summary__items {
+  display: grid;
+  gap: 14px;
+  padding-bottom: var(--s-5);
+  margin-bottom: var(--s-5);
+  border-bottom: 1px solid var(--c-line);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.checkout-summary__item { display: grid; grid-template-columns: 54px 1fr auto; gap: 12px; align-items: center; }
+.checkout-summary__item-title { font-size: var(--fs-sm); color: var(--c-cream-200); line-height: 1.3; }
+.checkout-summary__item-meta {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  margin-top: 3px;
+}
+.checkout-summary__item-price { font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--c-cream-200); }
+
+/* --- Шаги ----------------------------------------------------------------- */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: clamp(28px, 3.5vw, 48px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.steps::-webkit-scrollbar { display: none; }
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px 9px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line);
+  background: transparent;
+  color: var(--c-text-muted);
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color var(--t-base) var(--e-out), color var(--t-base) var(--e-out);
+}
+.step[data-state='active'] { border-color: var(--c-cream-300); color: var(--c-cream-100); }
+.step[data-state='done'] { color: var(--c-cream-300); border-color: var(--c-line-strong); }
+.step:disabled { cursor: not-allowed; }
+
+.step__num {
+  width: 26px; height: 26px;
+  border-radius: var(--r-pill);
+  border: 1px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.step[data-state='active'] .step__num { background: var(--c-cream-100); color: var(--c-ink-900); border-color: var(--c-cream-100); }
+
+.steps__line { flex: 0 0 22px; height: 1px; background: var(--c-line); }
+
+/* --- Формы ---------------------------------------------------------------- */
+.checkout-block { display: grid; gap: var(--s-5); }
+
+.checkout-block__title {
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  color: var(--c-cream-100);
+}
+
+.form-row { display: grid; gap: var(--s-4); }
+@media (min-width: 620px) { .form-row--2 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 620px) { .form-row--3 { grid-template-columns: 2fr 1fr 1fr; } }
+
+.option-list { display: grid; gap: 10px; }
+
+.city-suggest { position: relative; }
+.city-suggest__list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-line-strong);
+  background: var(--c-ink-600);
+  box-shadow: var(--sh-lg);
+  padding: 6px;
+}
+.city-suggest__item {
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: var(--r-sm);
+  color: var(--c-text-dim);
+  font-size: var(--fs-sm);
+  transition: background-color var(--t-fast) var(--e-out), color var(--t-fast) var(--e-out);
+}
+@media (hover: hover) {
+  .city-suggest__item:hover { background: var(--c-ink-500); color: var(--c-cream-100); }
+}
+
+.pickup-list { display: grid; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
+
+.checkout-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--c-line);
+}
+.checkout-nav .btn:last-child { flex: 1; }
+
+.checkout-review { display: grid; gap: var(--s-5); }
+.review-block {
+  padding: clamp(18px, 2.2vw, 26px);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--c-line);
+  background: var(--c-ink-700);
+}
+.review-block__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: 12px;
+}
+.review-block__title {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--c-sand);
+}
+.review-block__body { font-size: var(--fs-sm); color: var(--c-text-dim); line-height: var(--lh-loose); }
+.review-block__body strong { color: var(--c-cream-100); font-weight: 500; }
+
+/* --- Успешный заказ -------------------------------------------------------- */
+.success {
+  padding-top: calc(var(--header-h) + clamp(48px, 8vw, 110px));
+  padding-bottom: var(--section-y);
+  text-align: center;
+}
+.success__mark {
+  width: 84px; height: 84px;
+  margin: 0 auto clamp(24px, 3vw, 36px);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  display: grid;
+  place-items: center;
+  color: var(--c-success);
+  animation: success-pop var(--t-slow) var(--e-out);
+}
+@keyframes success-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.success__title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: var(--fs-2xl);
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  color: var(--c-cream-100);
+  line-height: var(--lh-snug);
+}
+.success__number {
+  margin-top: 14px;
+  font-family: var(--f-mono);
+  font-size: var(--fs-lg);
+  letter-spacing: var(--ls-wide);
+  color: var(--c-cream-300);
+}
+.success__text {
+  margin: var(--s-5) auto 0;
+  max-width: 48ch;
+  color: var(--c-text-dim);
+  line-height: var(--lh-loose);
+}
+.success__actions {
+  margin-top: clamp(28px, 3.5vw, 44px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.success__card {
+  margin: clamp(32px, 4vw, 56px) auto 0;
+  max-width: 560px;
+  text-align: left;
+}
+
+/* --- Статусная лента заказа ------------------------------------------------ */
+.timeline { display: grid; gap: 0; }
+.timeline__row {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 16px;
+  padding-bottom: 22px;
+  position: relative;
+}
+.timeline__row:last-child { padding-bottom: 0; }
+.timeline__row::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 20px;
+  bottom: 0;
+  width: 1px;
+  background: var(--c-line);
+}
+.timeline__row:last-child::before { display: none; }
+.timeline__dot {
+  width: 21px; height: 21px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  background: var(--c-ink-800);
+  display: grid;
+  place-items: center;
+  z-index: 1;
+}
+.timeline__dot[data-done='true'] { border-color: var(--c-cream-300); color: var(--c-cream-200); }
+.timeline__dot span { width: 7px; height: 7px; border-radius: var(--r-pill); background: currentColor; }
+.timeline__label { font-size: var(--fs-sm); color: var(--c-cream-200); }
+.timeline__time {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--c-text-muted);
+  margin-top: 3px;
+}

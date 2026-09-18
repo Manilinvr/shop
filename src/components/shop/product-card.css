@@ -1,0 +1,191 @@
+/* ==========================================================================
+   MANILI — КАРТОЧКА ТОВАРА
+   ========================================================================== */
+
+.pcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.pcard__media-wrap {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--c-ink-700);
+}
+
+.pcard__media {
+  transition: transform var(--t-slow) var(--e-out), opacity var(--t-base) var(--e-out);
+  border-radius: 0;
+}
+
+/* Второе фото проявляется при наведении — «примерка» одним движением */
+.pcard__media--alt {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .pcard:hover .pcard__media--main { opacity: 0; }
+  .pcard:hover .pcard__media--alt { opacity: 1; }
+  .pcard:hover .pcard__media { transform: scale(1.045); }
+}
+
+.pcard__badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  z-index: 2;
+  max-width: calc(100% - 70px);
+}
+
+.pcard__fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: rgba(17, 16, 16, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--c-cream-200);
+}
+.pcard__fav[data-active='true'] { color: var(--c-cream-100); background: rgba(17, 16, 16, 0.8); }
+
+/* Быстрый выбор размера — выезжает снизу на карточке */
+.pcard__quick {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 10px;
+  border-radius: var(--r-md);
+  background: rgba(17, 16, 16, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--c-line);
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition: opacity var(--t-base) var(--e-out), transform var(--t-base) var(--e-out);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .pcard:hover .pcard__quick,
+  .pcard:focus-within .pcard__quick {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+@media (hover: none) {
+  /* На тач-устройствах ховера нет — размеры выбирают в карточке товара */
+  .pcard__quick { display: none; }
+}
+
+.pcard__size {
+  flex: 1 1 auto;
+  min-width: 42px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--c-cream-200);
+  display: grid;
+  place-items: center;
+  transition: background-color var(--t-fast) var(--e-out), color var(--t-fast) var(--e-out);
+}
+@media (hover: hover) {
+  .pcard__size:hover:not(:disabled) { background: var(--c-cream-100); color: var(--c-ink-900); }
+}
+.pcard__size:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.pcard__info { display: flex; flex-direction: column; gap: 5px; }
+
+.pcard__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.pcard__title {
+  font-size: var(--fs-md);
+  color: var(--c-cream-100);
+  line-height: var(--lh-snug);
+  transition: opacity var(--t-fast) var(--e-out);
+}
+@media (hover: hover) { .pcard:hover .pcard__title { opacity: 0.78; } }
+
+.pcard__prices { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+.pcard__price { font-family: var(--f-mono); font-size: var(--fs-sm); color: var(--c-cream-100); }
+.pcard__old {
+  font-family: var(--f-mono);
+  font-size: var(--fs-xs);
+  color: var(--c-sand);
+  text-decoration: line-through;
+}
+
+.pcard__meta {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.pcard__sold-out {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 9, 8, 0.55);
+  backdrop-filter: grayscale(0.6);
+  -webkit-backdrop-filter: grayscale(0.6);
+}
+
+/* --- Сетка каталога ------------------------------------------------------ */
+.pgrid {
+  display: grid;
+  gap: clamp(20px, 2.4vw, 40px) clamp(14px, 1.6vw, 28px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 720px) { .pgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .pgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.pgrid--wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 900px) { .pgrid--wide { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Горизонтальная лента товаров — для главной */
+.prail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(230px, 30vw);
+  gap: clamp(14px, 1.6vw, 28px);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--s-4);
+  scrollbar-width: none;
+  margin-inline: calc(-1 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+.prail::-webkit-scrollbar { display: none; }
+.prail > * { scroll-snap-align: start; }
+@media (min-width: 900px) {
+  .prail { grid-auto-columns: minmax(280px, 24vw); }
+}

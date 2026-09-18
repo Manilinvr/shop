@@ -1,0 +1,6 @@
+.marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.2rem;
+  white-space: nowrap;
+}

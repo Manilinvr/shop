@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Временная иконка вкладки. Заменяется фирменным знаком MANILI,
+  когда владелец передаст файл: положить сюда свой favicon.svg.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="18" fill="#111010"/>
+  <path d="M15 45V19h6.6l10.4 16.4L42.4 19H49v26h-6.2V30.3L33 45h-2L21.2 30.3V45z" fill="#f2ebdd"/>
+</svg>

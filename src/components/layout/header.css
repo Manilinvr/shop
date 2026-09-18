@@ -1,0 +1,214 @@
+/* ==========================================================================
+   MANILI — ШАПКА
+   Плавающая «таблетка» поверх контента: скруглённая со всех сторон,
+   уплотняется при прокрутке.
+   ========================================================================== */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-header);
+  padding: clamp(10px, 1.6vw, 18px) var(--gutter);
+  transition: padding var(--t-base) var(--e-out);
+  pointer-events: none;
+}
+.header[data-scrolled='true'] { padding-block: 8px; }
+
+.header__bar {
+  pointer-events: auto;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding-inline: clamp(14px, 1.8vw, 26px);
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  transition:
+    background-color var(--t-base) var(--e-out),
+    border-color var(--t-base) var(--e-out),
+    box-shadow var(--t-base) var(--e-out),
+    backdrop-filter var(--t-base) var(--e-out);
+}
+
+.header[data-scrolled='true'] .header__bar,
+.header[data-solid='true'] .header__bar {
+  background: rgba(17, 16, 16, 0.78);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border-color: var(--c-line);
+  box-shadow: var(--sh-md);
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--r-pill);
+  padding: 4px 6px;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline: auto;
+}
+
+.header__link {
+  position: relative;
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--c-text-dim);
+  transition: color var(--t-base) var(--e-out), background-color var(--t-base) var(--e-out);
+  white-space: nowrap;
+}
+@media (hover: hover) {
+  .header__link:hover { color: var(--c-cream-100); background: rgba(242, 235, 221, 0.07); }
+}
+.header__link[aria-current='page'] {
+  color: var(--c-cream-100);
+  background: rgba(242, 235, 221, 0.1);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* Счётчик корзины — маленький кружок */
+.header__count {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: var(--r-pill);
+  background: var(--c-cream-100);
+  color: var(--c-ink-900);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 500;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: count-pop var(--t-base) var(--e-out);
+}
+@keyframes count-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.header__action-wrap { position: relative; display: inline-flex; }
+
+/* Поиск в шапке */
+.header__search {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: rgba(10, 9, 8, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding-top: clamp(80px, 14vh, 180px);
+  animation: modal-fade var(--t-base) var(--e-out);
+}
+.header__search-inner {
+  max-width: 780px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.header__search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 6px 6px 6px 24px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-line-strong);
+  background: var(--c-ink-700);
+}
+.header__search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  height: 56px;
+  font-size: var(--fs-lg);
+  color: var(--c-cream-100);
+}
+.header__search-input::placeholder { color: var(--c-sand); }
+
+.header__search-results {
+  margin-top: var(--s-5);
+  display: grid;
+  gap: var(--s-3);
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.header__search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 10px;
+  border-radius: var(--r-md);
+  transition: background-color var(--t-fast) var(--e-out);
+}
+@media (hover: hover) { .header__search-row:hover { background: var(--c-ink-600); } }
+.header__search-thumb { width: 56px; flex-shrink: 0; }
+.header__search-title { color: var(--c-cream-100); font-size: var(--fs-md); }
+.header__search-meta { color: var(--c-text-muted); font-size: var(--fs-xs); font-family: var(--f-mono); }
+
+/* Бургер и мобильная раскладка */
+.header__burger { display: none; }
+
+@media (max-width: 1100px) {
+  .header__nav { display: none; }
+  .header__burger { display: inline-flex; }
+  .header__logo { margin-right: auto; }
+}
+
+/* Мобильное меню */
+.mobile-menu__nav { display: grid; gap: 2px; }
+.mobile-menu__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: 18px 20px;
+  border-radius: var(--r-md);
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  color: var(--c-cream-200);
+  transition: background-color var(--t-fast) var(--e-out), color var(--t-fast) var(--e-out);
+}
+.mobile-menu__link:active { background: var(--c-ink-600); }
+.mobile-menu__link[aria-current='page'] { background: var(--c-ink-600); color: var(--c-cream-100); }
+
+.mobile-menu__section {
+  margin-top: var(--s-6);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--c-line);
+}
+.mobile-menu__sub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--r-md);
+  color: var(--c-text-dim);
+  font-size: var(--fs-sm);
+}

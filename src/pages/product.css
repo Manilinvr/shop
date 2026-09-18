@@ -1,0 +1,212 @@
+/* ==========================================================================
+   MANILI — КАРТОЧКА ТОВАРА
+   ========================================================================== */
+
+.pdp {
+  display: grid;
+  gap: clamp(28px, 4vw, 72px);
+  grid-template-columns: 1fr;
+  padding-top: calc(var(--header-h) + clamp(24px, 3vw, 48px));
+}
+@media (min-width: 1000px) {
+  .pdp { grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); align-items: start; }
+}
+
+/* --- Галерея --------------------------------------------------------------- */
+.pdp-gallery { display: grid; gap: var(--s-3); }
+
+@media (min-width: 1000px) {
+  .pdp-gallery {
+    grid-template-columns: 88px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.pdp-thumbs {
+  display: flex;
+  gap: 10px;
+  order: 2;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.pdp-thumbs::-webkit-scrollbar { display: none; }
+@media (min-width: 1000px) {
+  .pdp-thumbs {
+    order: 0;
+    flex-direction: column;
+    overflow-x: visible;
+    position: sticky;
+    top: calc(var(--header-h) + 40px);
+  }
+}
+
+.pdp-thumb {
+  flex: 0 0 68px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid transparent;
+  opacity: 0.55;
+  transition: opacity var(--t-base) var(--e-out), border-color var(--t-base) var(--e-out);
+}
+@media (min-width: 1000px) { .pdp-thumb { flex: none; width: 100%; } }
+.pdp-thumb[data-active='true'] { opacity: 1; border-color: var(--c-cream-300); }
+@media (hover: hover) { .pdp-thumb:hover { opacity: 1; } }
+.pdp-thumb .media { border-radius: 0; }
+
+.pdp-stage {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  cursor: zoom-in;
+  background: var(--c-ink-700);
+}
+.pdp-stage .media { border-radius: 0; }
+.pdp-stage__img {
+  transition: transform var(--t-slow) var(--e-out);
+}
+.pdp-stage[data-zoomed='true'] { cursor: zoom-out; }
+.pdp-stage[data-zoomed='true'] .pdp-stage__img { transform: scale(1.7); }
+
+.pdp-stage__nav {
+  position: absolute;
+  z-index: 2;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+}
+.pdp-stage__dot {
+  position: absolute;
+  bottom: 22px;
+  left: 20px;
+  z-index: 2;
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--c-cream-200);
+  background: rgba(17, 16, 16, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+}
+
+/* --- Информация ------------------------------------------------------------ */
+.pdp-info {
+  display: grid;
+  gap: var(--s-5);
+}
+@media (min-width: 1000px) {
+  .pdp-info { position: sticky; top: calc(var(--header-h) + 40px); }
+}
+
+.pdp-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pdp-title {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: var(--fs-2xl);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--c-cream-100);
+}
+.pdp-subtitle {
+  margin-top: 10px;
+  font-size: var(--fs-md);
+  color: var(--c-text-dim);
+  line-height: var(--lh-normal);
+}
+
+.pdp-price-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.pdp-price {
+  font-family: var(--f-mono);
+  font-size: var(--fs-xl);
+  color: var(--c-cream-100);
+}
+.pdp-old {
+  font-family: var(--f-mono);
+  font-size: var(--fs-md);
+  color: var(--c-sand);
+  text-decoration: line-through;
+}
+
+.pdp-section { display: grid; gap: var(--s-3); }
+
+.pdp-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+.pdp-section__title {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--c-sand);
+}
+.pdp-section__link {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--c-text-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+@media (hover: hover) { .pdp-section__link:hover { color: var(--c-cream-100); } }
+
+.pdp-sizes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pdp-stock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+}
+.pdp-stock__dot { width: 7px; height: 7px; border-radius: var(--r-pill); }
+.pdp-stock--in { color: var(--c-success); }
+.pdp-stock--in .pdp-stock__dot { background: var(--c-success); }
+.pdp-stock--low { color: #dcc06a; }
+.pdp-stock--low .pdp-stock__dot { background: var(--c-warning); }
+.pdp-stock--out { color: var(--c-text-muted); }
+.pdp-stock--out .pdp-stock__dot { background: var(--c-sand); }
+
+.pdp-actions { display: flex; gap: 10px; align-items: stretch; }
+.pdp-actions .btn { flex: 1; }
+
+.pdp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--c-line);
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+/* --- Модалка размеров ------------------------------------------------------ */
+.size-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.size-table th,
+.size-table td {
+  padding: 13px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--c-line);
+}
+.size-table th {
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--c-sand);
+  font-weight: 500;
+}
+.size-table td { color: var(--c-text-dim); }
+.size-table td:first-child { color: var(--c-cream-100); font-family: var(--f-mono); }
+.size-table tr:last-child td { border-bottom: none; }

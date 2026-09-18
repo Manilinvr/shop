@@ -1,0 +1,23 @@
+node_modules
+dist
+dist-ssr
+.env
+.env.local
+.env.*.local
+*.local
+.DS_Store
+.vite
+coverage
+*.log
+npm-debug.log*
+.idea
+.vscode/*
+!.vscode/extensions.json
+appwrite/.appwrite
+functions/**/node_modules
+tsconfig*.tsbuildinfo
+
+# src — только TypeScript; .js здесь появляется лишь при ошибочном tsc --noEmit false
+src/**/*.js
+src/**/*.jsx
+vite.config.js

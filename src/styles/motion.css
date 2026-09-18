@@ -1,0 +1,174 @@
+/* ==========================================================================
+   MANILI — MOTION
+   Все reveal-состояния управляются data-атрибутами, которые ставит
+   IntersectionObserver из useReveal(). Никаких тяжёлых анимационных
+   библиотек — только composited-свойства (transform/opacity) ради FPS.
+   ========================================================================== */
+
+[data-reveal] {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    opacity var(--t-reveal) var(--e-out),
+    transform var(--t-reveal) var(--e-out),
+    clip-path var(--t-reveal) var(--e-out),
+    filter var(--t-reveal) var(--e-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal='up']     { transform: translate3d(0, 44px, 0); }
+[data-reveal='down']   { transform: translate3d(0, -44px, 0); }
+[data-reveal='left']   { transform: translate3d(48px, 0, 0); }
+[data-reveal='right']  { transform: translate3d(-48px, 0, 0); }
+[data-reveal='scale']  { transform: scale(1.08); }
+[data-reveal='fade']   { transform: none; }
+[data-reveal='blur']   { filter: blur(14px); transform: translate3d(0, 20px, 0); }
+
+[data-reveal][data-revealed='true'] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Image reveal — «шторка» снизу вверх.
+   Важно: сам элемент НЕ прячем через clip-path/opacity. Элемент с нулевой
+   видимой площадью IntersectionObserver считает невидимым, и reveal никогда
+   не срабатывает. Поэтому шторка — отдельный слой ::after поверх картинки. */
+[data-reveal='mask'] {
+  opacity: 1;
+  transform: none;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-reveal='mask'] > * {
+  transform: scale(1.1);
+  transition: transform var(--t-reveal) var(--e-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal='mask']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--reveal-curtain, var(--c-bg));
+  transform-origin: bottom center;
+  transform: scaleY(1);
+  transition: transform var(--t-reveal) var(--e-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  pointer-events: none;
+}
+
+[data-reveal='mask'][data-revealed='true']::after { transform: scaleY(0); }
+[data-reveal='mask'][data-revealed='true'] > * { transform: none; }
+
+/* В кремовых секциях шторка должна быть кремовой, а не тёмной */
+.section--inverse { --reveal-curtain: var(--c-inv-bg); }
+
+/* --- Text reveal: построчный выезд из-под маски ----------------------- */
+.text-reveal { display: block; }
+.text-reveal__line {
+  display: block;
+  overflow: hidden;
+  padding-block: 0.06em;
+  margin-block: -0.06em;
+}
+.text-reveal__inner {
+  display: block;
+  transform: translate3d(0, 105%, 0);
+  transition: transform var(--t-reveal) var(--e-out);
+  transition-delay: var(--line-delay, 0ms);
+  will-change: transform;
+}
+.text-reveal[data-revealed='true'] .text-reveal__inner {
+  transform: translate3d(0, 0, 0);
+}
+
+/* --- Parallax --------------------------------------------------------- */
+[data-parallax] {
+  will-change: transform;
+  transform: translate3d(0, var(--parallax-y, 0px), 0) scale(var(--parallax-scale, 1));
+}
+
+/* --- Marquee (бегущая строка бренда) ---------------------------------- */
+.marquee {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  gap: var(--marquee-gap, 3rem);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.marquee__track {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--marquee-gap, 3rem);
+  min-width: 100%;
+  animation: marquee-scroll var(--marquee-duration, 38s) linear infinite;
+}
+.marquee--reverse .marquee__track { animation-direction: reverse; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+
+@keyframes marquee-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(calc(-100% - var(--marquee-gap, 3rem)), 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}
+
+/* --- Hover-подъём для карточек ---------------------------------------- */
+.lift {
+  transition:
+    transform var(--t-base) var(--e-out),
+    box-shadow var(--t-base) var(--e-out);
+}
+@media (hover: hover) {
+  .lift:hover { transform: translate3d(0, -6px, 0); box-shadow: var(--sh-lg); }
+}
+
+/* --- Скелетон загрузки ------------------------------------------------ */
+.skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--c-ink-700) 20%,
+    var(--c-ink-600) 40%,
+    var(--c-ink-700) 60%
+  );
+  background-size: 220% 100%;
+  animation: skeleton-sweep 1.5s ease-in-out infinite;
+  border-radius: var(--r-md);
+}
+@keyframes skeleton-sweep {
+  from { background-position: 180% 0; }
+  to { background-position: -40% 0; }
+}
+
+/* --- Плавная смена страниц -------------------------------------------- */
+.page-enter {
+  animation: page-in var(--t-slow) var(--e-out) both;
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  .text-reveal__inner,
+  .page-enter,
+  .skeleton {
+    animation: none !important;
+    transition-duration: 1ms !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
+  }
+  [data-parallax] { transform: none !important; }
+  [data-reveal='mask']::after { display: none; }
+  [data-reveal='mask'] > * { transform: none !important; }
+}
