@@ -1,0 +1,135 @@
+# ==========================================================================
+# MANILI — настройка Appwrite без терминала
+#
+# Делает то же, что команды из docs/SETUP.md (шаги 4.3–4.5), но запускается
+# кнопкой на вкладке Actions. Устанавливать Node и открывать консоль
+# на своём компьютере не нужно.
+#
+# Запускается только вручную: случайный push ничего в базе не тронет.
+#
+# API-ключ берётся из Secrets и в журнал не попадает — GitHub заменяет его
+# звёздочками. Остальные значения публичные, они лежат в Variables и там же
+# используются сборкой сайта (ТЗ §32, §47).
+# ==========================================================================
+
+name: Настройка Appwrite
+
+on:
+  workflow_dispatch:
+    inputs:
+      step:
+        description: Что выполнить
+        type: choice
+        default: Всё сразу
+        options:
+          - Всё сразу
+          - Только схема базы
+          - Только стартовое содержимое
+          - Только функции
+      demo_products:
+        description: Добавить демо-товары (чтобы посмотреть на заполненный магазин)
+        type: boolean
+        default: false
+
+# Ничего не публикуем и не коммитим — только читаем репозиторий.
+permissions:
+  contents: read
+
+concurrency:
+  group: appwrite-setup
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+      APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+      APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
+      APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Проверяем настройки до работы: иначе скрипт упадёт где-то в середине
+      # с непонятной ошибкой от Appwrite.
+      - name: Проверить настройки
+        run: |
+          missing=""
+          [ -n "$APPWRITE_ENDPOINT" ]   || missing="$missing\n  • Variables → VITE_APPWRITE_ENDPOINT (например https://fra.cloud.appwrite.io/v1)"
+          [ -n "$APPWRITE_PROJECT_ID" ] || missing="$missing\n  • Variables → VITE_APPWRITE_PROJECT_ID (Project ID из Appwrite)"
+          [ -n "$APPWRITE_API_KEY" ]    || missing="$missing\n  • Secrets → APPWRITE_API_KEY (ключ из шага 4.2)"
+
+          if [ -n "$missing" ]; then
+            printf 'Не хватает настроек. Settings → Secrets and variables → Actions:%b\n' "$missing"
+            exit 1
+          fi
+          echo "Проект: $APPWRITE_PROJECT_ID"
+          echo "База:   $APPWRITE_DATABASE_ID"
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Схема базы — коллекции, поля, индексы
+        if: inputs.step == 'Всё сразу' || inputs.step == 'Только схема базы'
+        run: npm run setup:appwrite
+
+      - name: Стартовое содержимое — категории, коллекции, блоки главной
+        if: inputs.step == 'Всё сразу' || inputs.step == 'Только стартовое содержимое'
+        run: |
+          if [ "${{ inputs.demo_products }}" = "true" ]; then
+            npm run seed:appwrite -- --with-products
+          else
+            npm run seed:appwrite
+          fi
+
+      - name: Функции — сборка папок
+        if: inputs.step == 'Всё сразу' || inputs.step == 'Только функции'
+        run: npm run functions:build
+
+      # CLI читает appwrite.config.json и Project ID берёт оттуда. В репозитории
+      # лежит заготовка с заглушкой: подставляем настоящий ID здесь, чтобы он
+      # не хранился в файлах проекта.
+      - name: Функции — публикация в Appwrite
+        if: inputs.step == 'Всё сразу' || inputs.step == 'Только функции'
+        run: |
+          set -e
+          npm install -g appwrite-cli
+
+          node -e '
+            const fs = require("fs")
+            const config = JSON.parse(fs.readFileSync("appwrite.config.json", "utf8"))
+            config.projectId = process.env.APPWRITE_PROJECT_ID
+            fs.writeFileSync("appwrite.config.json", JSON.stringify(config, null, 2))
+          '
+
+          appwrite client \
+            --endpoint "$APPWRITE_ENDPOINT" \
+            --project-id "$APPWRITE_PROJECT_ID" \
+            --key "$APPWRITE_API_KEY"
+
+          appwrite push function --all --force
+
+      - name: Что дальше
+        if: success()
+        run: |
+          cat <<'TEXT'
+
+          Готово. Осталось сделать руками — это через API не настраивается:
+
+            1. Каждой функции задать переменные окружения (шаг 4.6 в docs/SETUP.md):
+               Functions → выбрать функцию → Settings → Environment variables
+            2. Разрешить сайту обращаться к Appwrite (шаг 4.8):
+               Settings → Platforms → Add platform → Web app
+            3. Переключить сайт на Appwrite (шаг 4.7):
+               Variables → VITE_BACKEND = appwrite, затем перезапустить
+               workflow «Deploy to GitHub Pages»
+            4. Сделать себя администратором (шаг 4.9)
+
+          TEXT

@@ -39,6 +39,7 @@ npm run preview
 | `npm run seed:appwrite` | Заливает категории, коллекции, блоки главной |
 | `npm run functions:build` | Готовит серверные функции к деплою |
 | `npm run telegram:register` | Подключает Telegram-бота |
+| `npm run brand:images` | Перерисовывает og-обложку и иконку для iOS |
 
 ---
 
@@ -93,6 +94,11 @@ Telegram, почта, SMS и юридическая часть.
 
 ## Подключение Appwrite
 
+Всё, что ниже, умеет делать workflow **Настройка Appwrite** на вкладке
+Actions — он запускает те же скрипты на серверах GitHub, так что Node и
+терминал не нужны. Подробности в [docs/SETUP.md](docs/SETUP.md), шаги 4.4–4.5.
+Дальше — то же самое руками.
+
 1. Создайте проект в [Appwrite Cloud](https://cloud.appwrite.io) или поднимите
    self-hosted.
 2. Создайте API-ключ с правами на `databases` и `storage`.
@@ -115,9 +121,13 @@ Telegram, почта, SMS и юридическая часть.
 5. Соберите и разверните функции:
 
    ```bash
-   npm run functions:build     # готовит build/functions/
-   appwrite push functions     # или загрузите ZIP через консоль
+   npm run functions:build          # готовит build/functions/
+   appwrite push function --all     # или загрузите ZIP через консоль
    ```
+
+   Project ID CLI берёт из `appwrite.config.json` либо из `appwrite client
+   --project-id`; в репозитории лежит заглушка, чтобы чужой ID не попал
+   в историю.
 
    Переменные окружения функций — раздел SERVER-SIDE в `.env.example`.
 6. В `.env` фронтенда укажите:
