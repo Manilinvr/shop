@@ -162,15 +162,30 @@ DNS обновляется от 15 минут до суток. Пока не о�
 
 1. *Overview → Integrations → API keys* → **Create API key**
 2. Название: `manili-server`
-3. Scopes — отметьте: `databases.read`, `databases.write`,
-   `collections.read`, `collections.write`, `attributes.read`,
-   `attributes.write`, `indexes.read`, `indexes.write`,
-   `documents.read`, `documents.write`, `files.read`, `files.write`,
-   `buckets.read`, `buckets.write`, `users.read`, `users.write`
+3. Scopes — отметьте `.read` и `.write` у каждого из девяти:
+
+   | Право | Зачем |
+   |---|---|
+   | `databases` | сама база |
+   | `collections` | таблицы товаров, заказов, покупателей |
+   | `attributes` | поля в них |
+   | `indexes` | поиск и сортировка |
+   | `documents` | записи: товары, заказы |
+   | `files` | фотографии товаров |
+   | `buckets` | хранилище под них |
+   | `users` | покупатели и вход |
+   | `functions` | загрузка серверных функций |
+
+   Это девять строк — `functions` тоже обязателен, без него публикация
+   функций отвалится с `missing scopes`.
+
 4. Скопируйте ключ — **показывается один раз**
 
 > Этот ключ даёт полный доступ к данным. Не отправляйте его в мессенджерах,
 > не коммитьте в git, не вставляйте в поля с префиксом `VITE_`.
+>
+> Права можно поменять и позже, ключ пересоздавать не нужно:
+> *API keys → ваш ключ → **Update***.
 
 ### 4.3. Что дальше: два пути
 
@@ -631,6 +646,7 @@ Appwrite Cloud может не подойти, и SMS подключается �
 | Браузер блокирует запросы | Appwrite → Settings → Platforms: добавлен ли ваш домен |
 | Нет доступа к админке | profiles → ваш документ → `role` = `ADMIN` |
 | «Сборка остановлена: публичная переменная содержит не то» | В Variables лежит ключ вместо адреса. Разберите шаг 4.4 и выпустите новый ключ |
+| `missing scopes` при публикации функций | Ключу не хватает прав. *API keys → ключ → Update*, отметьте `functions.read` и `functions.write` |
 | Telegram молчит | `getWebhookInfo` покажет ошибку: запустите скрипт из шага 7.2 |
 
 Логи функций Appwrite хранят только техническую информацию. Пароли,

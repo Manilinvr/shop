@@ -152,7 +152,7 @@ jobs:
           APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
           APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
         run: |
-          set -e
+          set -eo pipefail
           npm install -g appwrite-cli
 
           node -e '
@@ -167,7 +167,30 @@ jobs:
             --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
-          appwrite push function --all --force
+          # CLI сообщает о нехватке прав одной английской строкой вида
+          # «missing scopes ([...])». Разбирать её владельцу магазина незачем,
+          # поэтому частый случай переводим в понятное указание.
+          if ! appwrite push function --all --force 2>&1 | tee push.log; then
+            if grep -q 'missing scopes' push.log; then
+              printf '%s\n' \
+                '' \
+                '───────────────────────────────────────────────────────' \
+                'Ключу не хватает прав на функции.' \
+                '' \
+                'Appwrite → Overview → Integrations → API keys → ваш ключ' \
+                '→ Update. В списке Scopes отметьте:' \
+                '' \
+                '    functions.read' \
+                '    functions.write' \
+                '' \
+                'Сохраните и запустите этот workflow заново.' \
+                '' \
+                'База и содержимое уже созданы — повторный запуск их' \
+                'не тронет, доделается только публикация функций.' \
+                '───────────────────────────────────────────────────────'
+            fi
+            exit 1
+          fi
 
       - name: Что дальше
         if: success()
