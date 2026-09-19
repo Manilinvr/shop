@@ -4,7 +4,7 @@
    ========================================================================== */
 
 import { useEffect } from 'react'
-import { config } from '@/api/config'
+import { absoluteUrl, config } from '@/api/config'
 
 export interface SeoOptions {
   title: string
@@ -49,7 +49,10 @@ export function useSeo({ title, description, image, canonical, type = 'website',
     setMeta('meta[property="og:type"]', 'property', 'og:type', type)
     if (image) setMeta('meta[property="og:image"]', 'property', 'og:image', image)
 
-    const url = `${config.site.url}${canonical ?? window.location.pathname}`
+    // canonical приходит без подпапки сборки ('/shop'), а pathname — уже с ней.
+    const url = canonical
+      ? absoluteUrl(canonical)
+      : `${new URL(config.site.url || window.location.origin).origin}${window.location.pathname}`
     setMeta('meta[property="og:url"]', 'property', 'og:url', url)
     setLink('canonical', url)
 

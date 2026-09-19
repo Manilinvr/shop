@@ -40,6 +40,27 @@ jobs:
       - name: Проверка типов
         run: npm run typecheck
 
+      # Адрес сайта зависит от того, подключён ли собственный домен.
+      # Есть public/CNAME — сайт живёт в корне домена.
+      # Нет — это проектная страница GitHub вида <логин>.github.io/<репо>/,
+      # и сборке нужен базовый путь, иначе стили и скрипты не найдутся.
+      # Определяем автоматически: вернёте CNAME — всё переключится само.
+      - name: Определить адрес публикации
+        id: site
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          owner="$(printf '%s' "${GITHUB_REPOSITORY%%/*}" | tr '[:upper:]' '[:lower:]')"
+          if [ -f public/CNAME ]; then
+            domain="$(tr -d '[:space:]' < public/CNAME)"
+            echo "base=/" >> "$GITHUB_OUTPUT"
+            echo "url=https://$domain" >> "$GITHUB_OUTPUT"
+            echo "Собственный домен: $domain"
+          else
+            echo "base=/$repo/" >> "$GITHUB_OUTPUT"
+            echo "url=https://$owner.github.io/$repo" >> "$GITHUB_OUTPUT"
+            echo "Домена нет, публикуем на https://$owner.github.io/$repo"
+          fi
+
       - name: Сборка
         env:
           # Публичные значения. Задаются в Settings → Secrets and variables →
@@ -50,8 +71,9 @@ jobs:
           VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID }}
           VITE_APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://manili-event.ru' }}
-          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || '/' }}
+          # Переменная из настроек репозитория побеждает автоопределение
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL || steps.site.outputs.url }}
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH || steps.site.outputs.base }}
           VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
           VITE_SUPPORT_PHONE: ${{ vars.VITE_SUPPORT_PHONE }}
           VITE_SOCIAL_TELEGRAM: ${{ vars.VITE_SOCIAL_TELEGRAM }}

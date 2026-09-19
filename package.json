@@ -12,7 +12,8 @@
     "setup:appwrite": "node scripts/setup-appwrite.mjs",
     "functions:build": "node scripts/prepare-functions.mjs",
     "seed:appwrite": "node scripts/seed-appwrite.mjs",
-    "telegram:register": "node scripts/register-telegram-webhook.mjs"
+    "telegram:register": "node scripts/register-telegram-webhook.mjs",
+    "brand:images": "node scripts/generate-brand-images.mjs"
   },
   "dependencies": {
     "appwrite": "^16.1.0",

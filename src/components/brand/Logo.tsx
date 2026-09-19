@@ -19,6 +19,23 @@ import './logo.css'
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}brand/manili-logo.svg`
 
+/*
+   Логотип запрашивается и в шапке, и в подвале. Проверяем наличие файла один
+   раз за загрузку страницы, иначе браузер шлёт одинаковый запрос несколько раз
+   (а пока файла нет — и несколько одинаковых 404 в консоли).
+*/
+let brandFileProbe: Promise<boolean> | null = null
+
+function probeBrandFile(): Promise<boolean> {
+  brandFileProbe ??= new Promise<boolean>((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve(true)
+    img.onerror = () => resolve(false)
+    img.src = LOGO_SRC
+  })
+  return brandFileProbe
+}
+
 export interface LogoProps {
   className?: string
   /** Высота логотипа в px. */
@@ -31,10 +48,7 @@ export function Logo({ className, size = 28, tone = 'cream' }: LogoProps) {
 
   useEffect(() => {
     let cancelled = false
-    const img = new Image()
-    img.onload = () => { if (!cancelled) setHasBrandFile(true) }
-    img.onerror = () => { if (!cancelled) setHasBrandFile(false) }
-    img.src = LOGO_SRC
+    probeBrandFile().then((found) => { if (!cancelled) setHasBrandFile(found) })
     return () => { cancelled = true }
   }, [])
 

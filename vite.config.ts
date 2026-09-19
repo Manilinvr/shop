@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 
 // MANILI — Vite config.
-// base задаётся через VITE_BASE_PATH: '/' для кастомного домена manili-event.ru,
-// '/shop/' если раздача идёт с github.io/<repo>/.
+// base задаётся через VITE_BASE_PATH: '/' при своём домене, '/<репозиторий>/'
+// при раздаче с github.io. Значение подставляет workflow деплоя.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
