@@ -6,7 +6,7 @@
    он живёт только в серверных функциях.
    ========================================================================== */
 
-import { Account, Client, Databases, Functions, Storage } from 'appwrite'
+import { Account, Client, Databases, Functions, Permission, Role, Storage } from 'appwrite'
 import { config } from '@/api/config'
 
 let client: Client | null = null
@@ -24,6 +24,23 @@ export const account = () => new Account(getClient())
 export const databases = () => new Databases(getClient())
 export const storage = () => new Storage(getClient())
 export const functions = () => new Functions(getClient())
+
+/**
+ * Права личной записи: её заводит сам пользователь, и видеть её должен
+ * только он. На уровне коллекции разрешено лишь создание — кто получит
+ * доступ к конкретному документу, решается здесь, в момент создания.
+ * Без этого человек не смог бы прочитать даже собственный профиль.
+ *
+ * Администратор читает такие записи по метке `admin` — она задана
+ * в правах коллекции и сюда не дублируется.
+ */
+export function ownerPermissions(userId: string): string[] {
+  return [
+    Permission.read(Role.user(userId)),
+    Permission.update(Role.user(userId)),
+    Permission.delete(Role.user(userId)),
+  ]
+}
 
 export const DB_ID = config.appwrite.databaseId
 export const BUCKET_ID = config.appwrite.bucketId

@@ -38,18 +38,58 @@ const D = (key, required = false) => ({ type: 'datetime', key, required })
 const E = (key, elements, required = false, def = null) => ({ type: 'enum', key, elements, required, def })
 const SA = (key, size = 64) => ({ type: 'string', key, size, required: false, array: true })
 
-/** Публичное чтение — каталог и контент витрины. */
-const PUBLIC_READ = [Permission.read(Role.any())]
-/** Только сервер: пишет и читает функция с API-ключом. */
+/*
+   МОДЕЛЬ ДОСТУПА
+
+   Кто такой администратор, решает не поле role в базе, а метка `admin`
+   у пользователя Appwrite. Поле подделать можно — свой профиль человек
+   правит сам; метку ставит только владелец проекта из консоли или сервер
+   по API-ключу. Поэтому права опираются на метку (ТЗ §25, §32).
+
+   Личные коллекции открыты на создание всем вошедшим, но не на чтение:
+   кто увидит конкретную запись, решают права самого документа, которые
+   проставляются при создании. Иначе любой покупатель читал бы чужие
+   профили, адреса и заказы.
+*/
+
+/** Каталог и контент витрины: читают все, правит администратор. */
+const CATALOG = [
+  Permission.read(Role.any()),
+  Permission.create(Role.label('admin')),
+  Permission.update(Role.label('admin')),
+  Permission.delete(Role.label('admin')),
+]
+
+/** Личное: вошедший заводит свою запись, видит её только он и админ. */
+const USER_OWNED = [
+  Permission.create(Role.users()),
+  Permission.read(Role.label('admin')),
+  Permission.update(Role.label('admin')),
+  Permission.delete(Role.label('admin')),
+]
+
+/** Пишет сервер, читает владелец записи (по правам документа) и админ. */
+const SERVER_WRITES = [
+  Permission.read(Role.label('admin')),
+  Permission.update(Role.label('admin')),
+]
+
+/** Только админ: содержимое не для покупателей. */
+const ADMIN_ONLY = [
+  Permission.read(Role.label('admin')),
+  Permission.create(Role.label('admin')),
+  Permission.update(Role.label('admin')),
+  Permission.delete(Role.label('admin')),
+]
+
+/** Только сервер: пишет и читает функция с API-ключом, прав не нужно. */
 const SERVER_ONLY = []
-/** Пользователь читает своё, пишет сервер. */
-const USER_READ = [Permission.read(Role.users())]
 
 const SCHEMA = [
   {
     id: 'profiles',
     name: 'Профили',
-    permissions: USER_READ,
+    permissions: USER_OWNED,
     documentSecurity: true,
     attributes: [
       S('firstName', 120), S('lastName', 120), S('phone', 20), S('email', 160),
@@ -67,7 +107,7 @@ const SCHEMA = [
   {
     id: 'addresses',
     name: 'Адреса',
-    permissions: USER_READ,
+    permissions: USER_OWNED,
     documentSecurity: true,
     attributes: [
       S('userId', 64, true), S('label', 80), S('city', 120, true), S('street', 200, true),
@@ -79,7 +119,7 @@ const SCHEMA = [
   {
     id: 'categories',
     name: 'Категории',
-    permissions: PUBLIC_READ,
+    permissions: CATALOG,
     attributes: [
       S('slug', 120, true), S('title', 160, true), S('description', 600), S('image', 400),
       I('sortOrder', false, 0), B('isActive', false, true),
@@ -92,7 +132,7 @@ const SCHEMA = [
   {
     id: 'collections',
     name: 'Коллекции',
-    permissions: PUBLIC_READ,
+    permissions: CATALOG,
     attributes: [
       S('slug', 120, true), S('title', 160, true), S('description', 1200),
       S('cover', 400), S('banner', 400), D('releaseDate'),
@@ -107,7 +147,7 @@ const SCHEMA = [
   {
     id: 'products',
     name: 'Товары',
-    permissions: PUBLIC_READ,
+    permissions: CATALOG,
     attributes: [
       S('slug', 160, true), S('title', 200, true), S('subtitle', 300),
       S('description', 4000), S('composition', 1200),
@@ -133,7 +173,7 @@ const SCHEMA = [
   {
     id: 'product_variants',
     name: 'Размеры товаров',
-    permissions: PUBLIC_READ,
+    permissions: CATALOG,
     attributes: [
       S('productId', 64, true),
       E('size', ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'ONE_SIZE'], true),
@@ -151,7 +191,7 @@ const SCHEMA = [
   {
     id: 'favorites',
     name: 'Избранное',
-    permissions: USER_READ,
+    permissions: USER_OWNED,
     documentSecurity: true,
     attributes: [S('userId', 64, true), S('productId', 64, true)],
     indexes: [
@@ -162,8 +202,10 @@ const SCHEMA = [
   {
     id: 'promocodes',
     name: 'Промокоды',
-    // Читать может только сервер: иначе список кодов утекает в браузер.
-    permissions: SERVER_ONLY,
+    // Покупателю список кодов не виден — иначе его просто переберут.
+    // Проверяет код серверная функция, а заводит и правит админка.
+    permissions: ADMIN_ONLY,
+    documentSecurity: true,
     attributes: [
       S('code', 40, true),
       E('discountType', ['PERCENT', 'FIXED', 'FREE_DELIVERY'], true),
@@ -183,7 +225,7 @@ const SCHEMA = [
   {
     id: 'orders',
     name: 'Заказы',
-    permissions: USER_READ,
+    permissions: SERVER_WRITES,
     documentSecurity: true,
     attributes: [
       S('publicOrderNumber', 40, true), S('userId', 64),
@@ -215,7 +257,7 @@ const SCHEMA = [
   {
     id: 'order_items',
     name: 'Позиции заказов',
-    permissions: USER_READ,
+    permissions: SERVER_WRITES,
     documentSecurity: true,
     attributes: [
       S('orderId', 64, true), S('productId', 64, true), S('variantId', 64, true),
@@ -254,7 +296,7 @@ const SCHEMA = [
   {
     id: 'order_status_history',
     name: 'История заказов',
-    permissions: USER_READ,
+    permissions: SERVER_WRITES,
     documentSecurity: true,
     attributes: [
       S('orderId', 64, true), S('field', 60, true),
@@ -278,7 +320,8 @@ const SCHEMA = [
   {
     id: 'audit_logs',
     name: 'Журнал действий',
-    permissions: SERVER_ONLY,
+    permissions: ADMIN_ONLY,
+    documentSecurity: true,
     attributes: [
       S('actorId', 64), S('actorName', 160), S('action', 80, true),
       S('entity', 60), S('entityId', 64),
@@ -288,7 +331,7 @@ const SCHEMA = [
   {
     id: 'homepage_blocks',
     name: 'Блоки главной',
-    permissions: PUBLIC_READ,
+    permissions: CATALOG,
     attributes: [
       E('type', ['HERO', 'NEW_COLLECTION', 'CATEGORIES', 'FEATURED_PRODUCTS', 'EDITORIAL', 'MEDIA', 'STORY', 'NEW_ARRIVALS', 'COLLECTIONS', 'CTA', 'MARQUEE'], true),
       I('sortOrder', false, 0), B('isEnabled', false, true),
@@ -339,15 +382,31 @@ async function main() {
   for (const collection of SCHEMA) {
     console.log(`\n${collection.name} (${collection.id})`)
 
-    await safe('коллекция', () =>
-      databases.createCollection(
-        dbId,
-        collection.id,
-        collection.name,
-        collection.permissions,
-        collection.documentSecurity ?? false,
-      ),
-    )
+    // Сначала пробуем создать; если коллекция уже есть — обновляем права.
+    // Без этого правка модели доступа не доезжала бы до боевой базы:
+    // createCollection отвечает 409, и старые права оставались навсегда.
+    let created = false
+    try {
+      await databases.createCollection(
+        dbId, collection.id, collection.name,
+        collection.permissions, collection.documentSecurity ?? false,
+      )
+      created = true
+      console.log('  + коллекция')
+    } catch (error) {
+      if (error?.code !== 409) {
+        console.error(`  ! коллекция: ${error?.message || error}`)
+      }
+    }
+
+    if (!created) {
+      await safe('права коллекции обновлены', () =>
+        databases.updateCollection(
+          dbId, collection.id, collection.name,
+          collection.permissions, collection.documentSecurity ?? false,
+        ),
+      )
+    }
 
     for (const attr of collection.attributes) {
       await safe(`атрибут ${attr.key}`, () => createAttribute(collection.id, attr))

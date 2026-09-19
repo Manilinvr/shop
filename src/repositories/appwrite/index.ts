@@ -56,6 +56,7 @@ import {
   fileUrl,
   functions,
   FUNCTION_IDS,
+  ownerPermissions,
   storage,
 } from './client'
 import {
@@ -272,18 +273,37 @@ const catalog: CatalogRepository = {
 
 /* --- Профиль текущего пользователя --------------------------------------- */
 
+/**
+ * Роль берём из меток пользователя Appwrite, а не из поля role в профиле.
+ *
+ * Профиль человек правит сам — иначе он не сменил бы себе имя или телефон, —
+ * а значит поле role подделывается в два клика. Метку же ставит только
+ * владелец проекта из консоли или сервер по API-ключу, и на неё же опираются
+ * права коллекций. Так UI и реальный доступ говорят одно и то же (ТЗ §25).
+ */
+function roleFromLabels(labels: string[] | undefined, fallback: User['role']): User['role'] {
+  if (labels?.includes('admin')) return 'ADMIN'
+  if (labels?.includes('manager')) return 'MANAGER'
+  // Метки нет — что бы ни лежало в профиле, это обычный покупатель.
+  return fallback === 'CUSTOMER' ? fallback : 'CUSTOMER'
+}
+
 async function loadProfile(accountId: string, fallbackEmail: string | null): Promise<User> {
+  const labels = await account().get().then((me) => me.labels, () => undefined)
+
   try {
     const doc = (await databases().getDocument(DB_ID, COLLECTIONS.profiles, accountId)) as Doc
-    return toUser(doc)
+    const user = toUser(doc)
+    return { ...user, role: roleFromLabels(labels, user.role) }
   } catch {
     // Профиля ещё нет — создаём заготовку. Роль всегда CUSTOMER:
     // повысить её может только сервер (ТЗ §25).
     const doc = (await databases().createDocument(DB_ID, COLLECTIONS.profiles, accountId, {
       firstName: '', lastName: '', phone: null, email: fallbackEmail, role: 'CUSTOMER',
       notifyEmail: true, notifySms: true, notifyTelegram: false, notifyMarketing: false,
-    })) as Doc
-    return toUser(doc)
+    }, ownerPermissions(accountId))) as Doc
+    const user = toUser(doc)
+    return { ...user, role: roleFromLabels(labels, user.role) }
   }
 }
 
@@ -320,8 +340,9 @@ const auth: AuthRepository = {
       firstName: input.firstName, lastName: input.lastName,
       phone: input.phone ?? null, email: input.email, role: 'CUSTOMER',
       notifyEmail: true, notifySms: false, notifyTelegram: false, notifyMarketing: true,
-    })) as Doc
-    return { user: toUser(doc), expiresAt: null }
+    }, ownerPermissions(created.$id))) as Doc
+    // Только что созданный аккаунт меток не имеет: это покупатель.
+    return { user: { ...toUser(doc), role: 'CUSTOMER' }, expiresAt: null }
   },
 
   async loginWithEmail(email, password): Promise<AuthSession> {
@@ -383,7 +404,7 @@ const auth: AuthRepository = {
     const me = await account().get()
     const doc = (await databases().createDocument(DB_ID, COLLECTIONS.addresses, AppwriteID.unique(), {
       ...draft, userId: me.$id,
-    })) as Doc
+    }, ownerPermissions(me.$id))) as Doc
     return { ...draft, id: doc.$id, userId: me.$id }
   },
 
@@ -420,7 +441,7 @@ const favorites: FavoritesRepository = {
     const me = await account().get()
     await databases().createDocument(DB_ID, COLLECTIONS.favorites, AppwriteID.unique(), {
       userId: me.$id, productId,
-    })
+    }, ownerPermissions(me.$id))
   },
   async remove(productId) {
     const me = await account().get()
