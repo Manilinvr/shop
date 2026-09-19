@@ -40,6 +40,49 @@ jobs:
       - name: Проверка типов
         run: npm run typecheck
 
+      # Сначала — проверка выражениями, без передачи значений в шаг: GitHub
+      # печатает блок env, и секрет из Variables попал бы в журнал раньше,
+      # чем мы успели бы о нём предупредить. ${{ }} возвращает true/false.
+      - name: Проверка адресов
+        run: |
+          for check in \
+            "VITE_APPWRITE_ENDPOINT ${{ vars.VITE_APPWRITE_ENDPOINT == '' || startsWith(vars.VITE_APPWRITE_ENDPOINT, 'http') }}" \
+            "VITE_API_BASE_URL ${{ vars.VITE_API_BASE_URL == '' || startsWith(vars.VITE_API_BASE_URL, 'http') }}" \
+            "VITE_SITE_URL ${{ vars.VITE_SITE_URL == '' || startsWith(vars.VITE_SITE_URL, 'http') }}"
+          do
+            set -- $check
+            if [ "$2" != "true" ]; then
+              printf '%s\n' \
+                "$1 не похоже на адрес — там должно быть https://..." \
+                '' \
+                'Если туда попал ключ или токен: Variables не маскируются' \
+                'и вшиваются в скрипты сайта. Выпустите новый ключ, старый' \
+                'удалите, а секрету место в Secrets.'
+              exit 1
+            fi
+          done
+
+      # Всё с префиксом VITE_ Vite вшивает в скрипты сайта, а сайт открыт
+      # всем. Секрет, по ошибке положенный в Variables вместо Secrets, утёк
+      # бы прямо в опубликованные файлы. Лучше красная сборка.
+      - name: Проверка публичных переменных
+        env:
+          VITE_BACKEND: ${{ vars.VITE_BACKEND }}
+          VITE_APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          VITE_APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID }}
+          VITE_APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          VITE_SUPPORT_EMAIL: ${{ vars.VITE_SUPPORT_EMAIL }}
+          VITE_SUPPORT_PHONE: ${{ vars.VITE_SUPPORT_PHONE }}
+          VITE_SOCIAL_TELEGRAM: ${{ vars.VITE_SOCIAL_TELEGRAM }}
+          VITE_SOCIAL_VK: ${{ vars.VITE_SOCIAL_VK }}
+          VITE_MARKETPLACE_WB: ${{ vars.VITE_MARKETPLACE_WB }}
+          VITE_MARKETPLACE_OZON: ${{ vars.VITE_MARKETPLACE_OZON }}
+          VITE_BASE_PATH: ${{ vars.VITE_BASE_PATH }}
+        run: node scripts/check-public-env.mjs
+
       # Адрес сайта зависит от того, подключён ли собственный домен.
       # Есть public/CNAME — сайт живёт в корне домена.
       # Нет — это проектная страница GitHub вида <логин>.github.io/<репо>/,

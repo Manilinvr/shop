@@ -42,13 +42,6 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
-    env:
-      APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
-      APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
-      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-      APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
-      APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -57,31 +50,73 @@ jobs:
           node-version: 22
           cache: npm
 
-      # Проверяем настройки до работы: иначе скрипт упадёт где-то в середине
-      # с непонятной ошибкой от Appwrite.
+      # Значения сюда НЕ передаём. GitHub печатает блок env каждого шага,
+      # и ключ, по ошибке положенный в Variables вместо Secrets, оказался бы
+      # в журнале — а журнал публичного репозитория открыт всем.
+      # Выражения ${{ }} возвращают только true/false, само значение
+      # в журнал не уходит.
       - name: Проверить настройки
         run: |
+          endpoint_set="${{ vars.VITE_APPWRITE_ENDPOINT != '' }}"
+          endpoint_url="${{ startsWith(vars.VITE_APPWRITE_ENDPOINT, 'http') }}"
+          project_set="${{ vars.VITE_APPWRITE_PROJECT_ID != '' }}"
+          key_set="${{ secrets.APPWRITE_API_KEY != '' }}"
+
           missing=""
-          [ -n "$APPWRITE_ENDPOINT" ]   || missing="$missing\n  • Variables → VITE_APPWRITE_ENDPOINT (например https://fra.cloud.appwrite.io/v1)"
-          [ -n "$APPWRITE_PROJECT_ID" ] || missing="$missing\n  • Variables → VITE_APPWRITE_PROJECT_ID (Project ID из Appwrite)"
-          [ -n "$APPWRITE_API_KEY" ]    || missing="$missing\n  • Secrets → APPWRITE_API_KEY (ключ из шага 4.2)"
+          [ "$endpoint_set" = "true" ] || missing="$missing\n  • Variables → VITE_APPWRITE_ENDPOINT (адрес вида https://fra.cloud.appwrite.io/v1)"
+          [ "$project_set" = "true" ]  || missing="$missing\n  • Variables → VITE_APPWRITE_PROJECT_ID (Project ID из Appwrite)"
+          [ "$key_set" = "true" ]      || missing="$missing\n  • Secrets → APPWRITE_API_KEY (ключ из шага 4.2)"
 
           if [ -n "$missing" ]; then
             printf 'Не хватает настроек. Settings → Secrets and variables → Actions:%b\n' "$missing"
             exit 1
           fi
-          echo "Проект: $APPWRITE_PROJECT_ID"
-          echo "База:   $APPWRITE_DATABASE_ID"
+
+          if [ "$endpoint_url" != "true" ]; then
+            printf '%s\n' \
+              'VITE_APPWRITE_ENDPOINT не похоже на адрес.' \
+              '' \
+              'Там должен быть API Endpoint из Appwrite (Settings → General),' \
+              'вида https://fra.cloud.appwrite.io/v1 — а не API-ключ.' \
+              '' \
+              'Если вы вставили туда ключ: Variables не маскируются, и он уже' \
+              'попал в журнал запуска. Выпустите в Appwrite новый ключ, старый' \
+              'удалите, новый положите в Secrets → APPWRITE_API_KEY.'
+            exit 1
+          fi
 
       - name: Установка зависимостей
         run: npm ci
 
+      # Вторая проверка, глубже: ищет среди публичных переменных значения,
+      # похожие на ключи и токены. Запускается после первой, когда endpoint
+      # уже признан адресом и печатать его безопасно.
+      - name: Проверка публичных переменных
+        env:
+          VITE_APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          VITE_APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID }}
+          VITE_APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID }}
+        run: node scripts/check-public-env.mjs
+
       - name: Схема базы — коллекции, поля, индексы
         if: inputs.step == 'Всё сразу' || inputs.step == 'Только схема базы'
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
+          APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
         run: npm run setup:appwrite
 
       - name: Стартовое содержимое — категории, коллекции, блоки главной
         if: inputs.step == 'Всё сразу' || inputs.step == 'Только стартовое содержимое'
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
+          APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
         run: |
           if [ "${{ inputs.demo_products }}" = "true" ]; then
             npm run seed:appwrite -- --with-products
@@ -91,6 +126,12 @@ jobs:
 
       - name: Функции — сборка папок
         if: inputs.step == 'Всё сразу' || inputs.step == 'Только функции'
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
+          APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
         run: npm run functions:build
 
       # CLI читает appwrite.config.json и Project ID берёт оттуда. В репозитории
@@ -98,6 +139,12 @@ jobs:
       # не хранился в файлах проекта.
       - name: Функции — публикация в Appwrite
         if: inputs.step == 'Всё сразу' || inputs.step == 'Только функции'
+        env:
+          APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
+          APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
+          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
+          APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID || 'manili' }}
+          APPWRITE_BUCKET_ID: ${{ vars.VITE_APPWRITE_BUCKET_ID || 'media' }}
         run: |
           set -e
           npm install -g appwrite-cli
