@@ -351,7 +351,85 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * Форма ошибки Appwrite. Тип описан здесь, а не импортирован из SDK:
+ * этот файл — общий контракт, он не должен знать про конкретный backend.
+ */
+interface BackendError {
+  code?: number
+  type?: string
+  message?: string
+}
+
+function asBackendError(error: unknown): BackendError | null {
+  if (!error || typeof error !== 'object') return null
+  const e = error as BackendError
+  return typeof e.code === 'number' || typeof e.type === 'string' ? e : null
+}
+
+/**
+ * Понятные объяснения вместо «что-то пошло не так».
+ *
+ * Дословный текст Appwrite показывать нельзя — он на английском и говорит
+ * языком API. Но и прятать причину за общей фразой нельзя: владелец магазина
+ * остаётся без единой зацепки, а настройка бэкенда — это как раз череда
+ * мелких недоделок вроде незарегистрированного адреса или нехватки прав.
+ */
+const EXPLAINED: Array<{ match: (e: BackendError) => boolean; text: string }> = [
+  {
+    match: (e) => e.type === 'user_already_exists',
+    text: 'Аккаунт с такой почтой уже существует. Войдите вместо регистрации.',
+  },
+  {
+    match: (e) => e.type === 'user_invalid_credentials',
+    text: 'Неверная почта или пароль.',
+  },
+  {
+    match: (e) => e.type === 'password_recently_used' || e.type === 'password_personal_data',
+    text: 'Такой пароль использовать нельзя — придумайте другой.',
+  },
+  {
+    match: (e) => e.type === 'general_argument_invalid' && /password/i.test(e.message ?? ''),
+    text: 'Пароль слишком короткий: нужно минимум 8 символов.',
+  },
+  {
+    match: (e) => e.code === 401 || e.type === 'user_unauthorized',
+    text:
+      'База данных отклонила запрос: не хватает прав. ' +
+      'Запустите в GitHub workflow «Настройка Appwrite» — он обновит права коллекций.',
+  },
+  {
+    match: (e) => e.code === 404 && /collection|database/i.test(e.message ?? ''),
+    text:
+      'Нужный раздел базы не найден: схема ещё не развёрнута. ' +
+      'Запустите в GitHub workflow «Настройка Appwrite».',
+  },
+  {
+    // Браузер блокирует ответ, если адрес сайта не зарегистрирован в Appwrite.
+    // Запрос до сервера не доходит, поэтому кода ошибки нет вовсе.
+    match: (e) => e.code === 0 || /failed to fetch|networkerror|load failed/i.test(e.message ?? ''),
+    text:
+      'Сайт не может связаться с базой. В Appwrite → Apps добавьте Web-приложение ' +
+      'с адресом этого сайта — без этого браузер блокирует запросы.',
+  },
+  {
+    match: (e) => e.code === 429,
+    text: 'Слишком много попыток подряд. Подождите минуту и повторите.',
+  },
+]
+
 export function toUserMessage(error: unknown, fallback = 'Что-то пошло не так. Попробуйте ещё раз.'): string {
   if (error instanceof AppError) return error.userMessage
+
+  const backend = asBackendError(error)
+  if (backend) {
+    // Техническая причина — в консоль: она нужна при настройке, но не на экране.
+    console.error('[backend]', backend.code, backend.type, backend.message)
+    const explained = EXPLAINED.find((rule) => rule.match(backend))
+    if (explained) return explained.text
+    if (backend.message) return `Не получилось: ${backend.message}`
+  }
+
+  if (error instanceof Error) console.error('[error]', error)
   return fallback
 }
