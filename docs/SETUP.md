@@ -160,7 +160,8 @@ DNS обновляется от 15 минут до суток. Пока не о�
 
 ### 4.2. API-ключ
 
-1. *Overview → Integrations → API keys* → **Create API key**
+1. В левом меню **API Keys** → **Create API key**
+   (в версиях постарше — *Overview → Integrations → API keys*)
 2. Название: `manili-server`
 3. Scopes — отметьте `.read` и `.write` у каждого из девяти:
 
@@ -234,7 +235,7 @@ DNS обновляется от 15 минут до суток. Пока не о�
 > API-ключ даёт полный доступ к вашим данным. Ему место **только** в Secrets.
 >
 > **Если ключ всё-таки побывал в Variables** — считайте его скомпрометированным.
-> Выпустите в Appwrite новый (*Integrations → API keys*), старый удалите,
+> Выпустите в Appwrite новый (левое меню → **API Keys**), старый удалите,
 > новый положите в Secrets. Удалить значение из уже записанного журнала
 > нельзя, можно только удалить сам журнал — и это не отменяет того, что его
 > могли прочитать.
@@ -386,7 +387,9 @@ VITE_BACKEND = appwrite
 Appwrite отвечает только тем адресам, которые вы перечислили сами, — иначе
 браузер заблокирует запросы, и сайт будет молча пустым.
 
-*Settings → Platforms → Add platform → Web app*
+В левом меню **Apps** → кнопка **+ Add app** → **Web**.
+В старых версиях консоли этот раздел называется *Settings → Platforms →
+Add platform → Web app* — это одно и то же.
 
 - Name: `MANILI`
 - Hostname: `manilinvr.github.io`
@@ -643,7 +646,7 @@ Appwrite Cloud может не подойти, и SMS подключается �
 | Пустой каталог | Appwrite → Databases → products: есть ли записи со `status = PUBLISHED` |
 | «Сервис временно недоступен» | Functions → нужная функция → Executions → лог |
 | Оплата не подтверждается | Functions → payment-webhook → Executions |
-| Браузер блокирует запросы | Appwrite → Settings → Platforms: добавлен ли ваш домен |
+| Браузер блокирует запросы | Appwrite → **Apps**: добавлен ли ваш адрес (в старых версиях — Settings → Platforms) |
 | Нет доступа к админке | profiles → ваш документ → `role` = `ADMIN` |
 | «Сборка остановлена: публичная переменная содержит не то» | В Variables лежит ключ вместо адреса. Разберите шаг 4.4 и выпустите новый ключ |
 | `missing scopes` при публикации функций | Ключу не хватает прав. *API keys → ключ → Update*, отметьте `functions.read` и `functions.write` |
