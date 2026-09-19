@@ -177,8 +177,8 @@ jobs:
                 '───────────────────────────────────────────────────────' \
                 'Ключу не хватает прав на функции.' \
                 '' \
-                'Appwrite → Overview → Integrations → API keys → ваш ключ' \
-                '→ Update. В списке Scopes отметьте:' \
+                'Appwrite → в левом меню API Keys → ваш ключ → Update.' \
+                'В списке Scopes отметьте:' \
                 '' \
                 '    functions.read' \
                 '    functions.write' \
