@@ -54,7 +54,7 @@ async function main() {
 
   console.log(`\nГотово: ${functionNames.length} функц. в build/functions/`)
   console.log('\nДеплой через Appwrite CLI:')
-  console.log('  appwrite push functions')
+  console.log('  appwrite push function --all')
   console.log('\nИли вручную: заархивируйте нужную папку и загрузите в консоли Appwrite.')
 }
 
