@@ -343,6 +343,16 @@ const SCHEMA = [
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/*
+   Незакрытые проблемы копим, а не теряем.
+
+   Раньше каждая печаталась строкой «! …» и терялась среди двух сотен
+   удачных — скрипт заканчивался словом «Готово», шаг в GitHub был зелёным,
+   а в базе не было ни хранилища для фотографий, ни поля data у блоков
+   главной. Ошибка, которую никто не заметил, хуже красного шага.
+*/
+const problems = []
+
 async function safe(label, fn) {
   try {
     await fn()
@@ -352,7 +362,20 @@ async function safe(label, fn) {
       console.log(`  = ${label} (уже есть)`)
       return
     }
-    console.error(`  ! ${label}: ${error?.message || error}`)
+    const message = error?.message || String(error)
+    console.error(`  ! ${label}: ${message}`)
+    problems.push({ label, message })
+  }
+}
+
+/** Создаёт, только если ещё нет: иначе Appwrite отвечает про лимит тарифа
+    даже когда объект давно на месте, и это выглядит как настоящая беда. */
+async function ensureExists(label, exists, create) {
+  try {
+    await exists()
+    console.log(`  = ${label} (уже есть)`)
+  } catch {
+    await safe(label, create)
   }
 }
 
@@ -377,7 +400,11 @@ async function createAttribute(collectionId, attr) {
 async function main() {
   console.log(`\nMANILI — настройка Appwrite\n  проект: ${projectId}\n  база:   ${dbId}\n`)
 
-  await safe(`база ${dbId}`, () => databases.create(dbId, 'MANILI'))
+  await ensureExists(
+    `база ${dbId}`,
+    () => databases.get(dbId),
+    () => databases.create(dbId, 'MANILI'),
+  )
 
   for (const collection of SCHEMA) {
     console.log(`\n${collection.name} (${collection.id})`)
@@ -426,9 +453,29 @@ async function main() {
   }
 
   console.log('\nХранилище файлов')
-  await safe(`бакет ${bucketId}`, () =>
-    storage.createBucket(bucketId, 'MANILI media', [Permission.read(Role.any())], false, true, 30 * 1024 * 1024),
+  await ensureExists(
+    `бакет ${bucketId}`,
+    () => storage.getBucket(bucketId),
+    () => storage.createBucket(
+      bucketId, 'MANILI media', [Permission.read(Role.any())], false, true, 30 * 1024 * 1024,
+    ),
   )
+
+  if (problems.length > 0) {
+    console.error('\n───────────────────────────────────────────────────────')
+    console.error(`Схема развёрнута не полностью: ${problems.length} шт. не прошли.\n`)
+    for (const p of problems) console.error(`  • ${p.label}\n      ${p.message}`)
+
+    if (problems.some((p) => /maximum number|limit/i.test(p.message))) {
+      console.error(`
+Часть отказов — это пределы тарифа Appwrite. На Free магазину не хватает
+места: нужны отдельное хранилище под фотографии и шесть функций. Варианты:
+  • повысить тариф Appwrite;
+  • ужать проект под бесплатный — скажите, и я переделаю.`)
+    }
+    console.error('───────────────────────────────────────────────────────\n')
+    process.exit(1)
+  }
 
   console.log(`
 Готово.

@@ -167,10 +167,23 @@ jobs:
             --project-id "$APPWRITE_PROJECT_ID" \
             --key "$APPWRITE_API_KEY"
 
-          # CLI сообщает о нехватке прав одной английской строкой вида
-          # «missing scopes ([...])». Разбирать её владельцу магазина незачем,
-          # поэтому частый случай переводим в понятное указание.
-          if ! appwrite push function --all --force 2>&1 | tee push.log; then
+          # appwrite push завершается нулевым кодом, даже когда не загрузил
+          # ни одной функции, — шаг выглядел зелёным при полном провале.
+          # Поэтому смотрим не только код возврата, но и сам вывод.
+          appwrite push function --all --force 2>&1 | tee push.log || true
+
+          if grep -q 'No functions were pushed\|Failed to push' push.log; then
+            printf '%s\n' '' 'Функции не загружены.'
+
+            if grep -q 'maximum number of functions' push.log; then
+              printf '%s\n' \
+                '' \
+                'Достигнут предел тарифа Appwrite: на Free доступно меньше' \
+                'функций, чем нужно магазину (их шесть). Варианты:' \
+                '  • повысить тариф Appwrite;' \
+                '  • собрать функции в одну — скажите, и я переделаю.'
+            fi
+
             if grep -q 'missing scopes' push.log; then
               printf '%s\n' \
                 '' \
@@ -182,6 +195,8 @@ jobs:
                 '' \
                 '    functions.read' \
                 '    functions.write' \
+                '    rules.read' \
+                '    rules.write' \
                 '' \
                 'Сохраните и запустите этот workflow заново.' \
                 '' \
@@ -189,6 +204,7 @@ jobs:
                 'не тронет, доделается только публикация функций.' \
                 '───────────────────────────────────────────────────────'
             fi
+
             exit 1
           fi
 
