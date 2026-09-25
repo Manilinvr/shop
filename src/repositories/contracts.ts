@@ -393,6 +393,17 @@ const EXPLAINED: Array<{ match: (e: BackendError) => boolean; text: string }> = 
     text: 'Пароль слишком короткий: нужно минимум 8 символов.',
   },
   {
+    // Поле есть в коде, но не появилось в базе: обычно схему развернули
+    // не до конца. Именно так выглядела незадавшаяся регистрация.
+    match: (e) =>
+      e.code === 400 &&
+      /unknown attribute|invalid document structure|invalid `?document`?/i.test(e.message ?? ''),
+    text:
+      'База настроена не полностью: в ней нет поля, которое ожидает сайт. ' +
+      'Запустите в GitHub workflow «Настройка Appwrite» и проверьте, что он' +
+      ' завершился без ошибок.',
+  },
+  {
     match: (e) => e.code === 401 || e.type === 'user_unauthorized',
     text:
       'База данных отклонила запрос: не хватает прав. ' +

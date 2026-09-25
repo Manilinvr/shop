@@ -93,7 +93,10 @@ const SCHEMA = [
     documentSecurity: true,
     attributes: [
       S('firstName', 120), S('lastName', 120), S('phone', 20), S('email', 160),
-      E('role', ['CUSTOMER', 'MANAGER', 'ADMIN'], true, 'CUSTOMER'),
+      // required и default вместе Appwrite не принимает — атрибут просто
+      // не создавался, а регистрация присылала role и получала 400.
+      // Значение по умолчанию тут важнее обязательности: его подставит сервер.
+      E('role', ['CUSTOMER', 'MANAGER', 'ADMIN'], false, 'CUSTOMER'),
       B('notifyEmail', false, true), B('notifySms', false, true),
       B('notifyTelegram', false, false), B('notifyMarketing', false, false),
       S('searchIndex', 400),
@@ -436,7 +439,11 @@ async function main() {
     }
 
     for (const attr of collection.attributes) {
-      await safe(`атрибут ${attr.key}`, () => createAttribute(collection.id, attr))
+      await ensureExists(
+        `атрибут ${attr.key}`,
+        () => databases.getAttribute(dbId, collection.id, attr.key),
+        () => createAttribute(collection.id, attr),
+      )
       // Appwrite создаёт атрибуты асинхронно: индексы упадут, если спешить.
       await sleep(180)
     }
@@ -445,8 +452,10 @@ async function main() {
     await sleep(1200)
 
     for (const index of collection.indexes ?? []) {
-      await safe(`индекс ${index.key}`, () =>
-        databases.createIndex(dbId, collection.id, index.key, index.type, index.attributes),
+      await ensureExists(
+        `индекс ${index.key}`,
+        () => databases.getIndex(dbId, collection.id, index.key),
+        () => databases.createIndex(dbId, collection.id, index.key, index.type, index.attributes),
       )
       await sleep(250)
     }
