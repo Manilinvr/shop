@@ -220,7 +220,7 @@ jobs:
             2. Разрешить сайту обращаться к Appwrite (шаг 4.8):
                Settings → Platforms → Add platform → Web app
             3. Переключить сайт на Appwrite (шаг 4.7):
-               Variables → VITE_BACKEND = appwrite, затем перезапустить
+               Variables → SITE_MODE = live, затем перезапустить
                workflow «Deploy to GitHub Pages»
             4. Сделать себя администратором (шаг 4.9)
 

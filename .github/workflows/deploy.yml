@@ -113,7 +113,12 @@ jobs:
         env:
           # Публичные значения. Задаются в Settings → Secrets and variables →
           # Actions → Variables (не Secrets: это не секреты).
-          VITE_BACKEND: ${{ vars.VITE_BACKEND || 'mock' }}
+          # Режим сайта. По умолчанию — демо-витрина для портфолио: товары,
+          # заказы и админка живут в браузере посетителя, backend не нужен.
+          # Настоящий магазин на Appwrite включается переменной
+          # SITE_MODE = live. Старая VITE_BACKEND на публикацию не влияет,
+          # чтобы оставшаяся от настройки Appwrite переменная не выключала демо.
+          VITE_BACKEND: ${{ vars.SITE_MODE == 'live' && 'appwrite' || 'mock' }}
           VITE_APPWRITE_ENDPOINT: ${{ vars.VITE_APPWRITE_ENDPOINT }}
           VITE_APPWRITE_PROJECT_ID: ${{ vars.VITE_APPWRITE_PROJECT_ID }}
           VITE_APPWRITE_DATABASE_ID: ${{ vars.VITE_APPWRITE_DATABASE_ID }}
