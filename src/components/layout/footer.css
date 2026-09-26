@@ -146,3 +146,17 @@
   pointer-events: none;
   padding-bottom: 0.08em;
 }
+
+/* Ссылка на демо-админку: видна только без backend, в тоне подвала. */
+.footer__demo {
+  color: var(--c-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  transition: color var(--t-fast, 160ms) ease;
+}
+
+.footer__demo:hover,
+.footer__demo:focus-visible {
+  color: var(--c-text);
+}

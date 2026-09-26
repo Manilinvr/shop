@@ -118,12 +118,17 @@
 
 .pcard__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--s-4);
+  /* На узкой карточке (две колонки на телефоне) название и цена со скидкой
+     в одну строку не помещаются: цена не сжимается и выталкивала страницу
+     вбок. С переносом она просто уходит под название. */
+  gap: 4px var(--s-4);
 }
 
 .pcard__title {
+  min-width: 0;
   font-size: var(--fs-md);
   color: var(--c-cream-100);
   line-height: var(--lh-snug);
@@ -131,7 +136,7 @@
 }
 @media (hover: hover) { .pcard:hover .pcard__title { opacity: 0.78; } }
 
-.pcard__prices { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+.pcard__prices { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; flex-shrink: 0; max-width: 100%; }
 .pcard__price { font-family: var(--f-mono); font-size: var(--fs-sm); color: var(--c-cream-100); }
 .pcard__old {
   font-family: var(--f-mono);

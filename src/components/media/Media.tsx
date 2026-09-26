@@ -10,7 +10,7 @@
 
 import { memo, useMemo, useState } from 'react'
 import { cx } from '@/lib/utils'
-import { resolveSilhouette, SILHOUETTE_VIEWBOX } from './silhouettes'
+import { GARMENT_OFFSET_Y, resolveFabric, resolveGarment, SILHOUETTE_VIEWBOX } from './silhouettes'
 import './media.css'
 
 export interface MediaProps {
@@ -27,10 +27,16 @@ export interface MediaProps {
 
 const PLACEHOLDER_PREFIX = 'placeholder:'
 
-function parsePlaceholder(src: string): { shape: string; variant: number } {
+/**
+ * `placeholder:<вид>/<кадр>[/<цвет>]`
+ *
+ * Цвет добавлен третьим и необязательным: старые значения без него
+ * продолжают работать, просто ткань берётся нейтральная.
+ */
+function parsePlaceholder(src: string): { shape: string; variant: number; color?: string } {
   const raw = src.slice(PLACEHOLDER_PREFIX.length)
-  const [shape, variantRaw] = raw.split('/')
-  return { shape: shape || 'editorial', variant: Number(variantRaw) || 1 }
+  const [shape, variantRaw, color] = raw.split('/')
+  return { shape: shape || 'editorial', variant: Number(variantRaw) || 1, color }
 }
 
 /** Детерминированный «шум» — один и тот же плейсхолдер всегда выглядит одинаково. */
@@ -45,28 +51,31 @@ function seededRandom(seed: number): () => number {
 const PlaceholderArt = memo(function PlaceholderArt({
   shape,
   variant,
+  color,
 }: {
   shape: string
   variant: number
+  color?: string
 }) {
-  const { path, specks, angle, tint } = useMemo(() => {
+  const { parts, fabric, specks, angle } = useMemo(() => {
     const seed = variant * 37 + shape.length * 13
     const rand = seededRandom(seed)
     return {
-      path: resolveSilhouette(shape),
+      parts: resolveGarment(shape),
+      fabric: resolveFabric(color),
       // Редкие «пылинки» плёнки — оживляют плоский фон.
       specks: Array.from({ length: 22 }, () => ({
         x: rand() * 400,
-        y: rand() * 480,
+        y: rand() * 533,
         r: 0.6 + rand() * 1.8,
-        o: 0.06 + rand() * 0.16,
+        o: 0.05 + rand() * 0.12,
       })),
-      angle: -8 + rand() * 16,
-      tint: 4 + Math.floor(rand() * 6),
+      // Кадры одного товара слегка развёрнуты — как разные ракурсы съёмки.
+      angle: -3 + ((variant - 1) % 4) * 2,
     }
-  }, [shape, variant])
+  }, [shape, variant, color])
 
-  const gid = `mnl-${shape}-${variant}`
+  const gid = `mnl-${shape}-${variant}-${color ?? 'n'}`
 
   return (
     <svg
@@ -77,37 +86,89 @@ const PlaceholderArt = memo(function PlaceholderArt({
       aria-hidden="true"
     >
       <defs>
-        <linearGradient id={`${gid}-bg`} x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0%" stopColor="#201d1a" />
-          <stop offset="55%" stopColor="#17151300" stopOpacity="0" />
-          <stop offset="100%" stopColor="#0c0b0a" />
-        </linearGradient>
-        <radialGradient id={`${gid}-glow`} cx="50%" cy="38%" r="62%">
-          <stop offset="0%" stopColor="#4a453d" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#4a453d" stopOpacity="0" />
+        {/* Свет студии: мягкое пятно сверху, затемнение по краям. */}
+        <radialGradient id={`${gid}-glow`} cx="50%" cy="30%" r="68%">
+          <stop offset="0%" stopColor="#544d44" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#544d44" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id={`${gid}-fill`} x1="0.2" y1="0" x2="0.8" y2="1">
-          <stop offset="0%" stopColor="#4d463d" />
-          <stop offset="100%" stopColor="#2a2621" />
+        <linearGradient id={`${gid}-vign`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#0a0908" stopOpacity="0.55" />
+          <stop offset="45%" stopColor="#0a0908" stopOpacity="0" />
+          <stop offset="100%" stopColor="#0a0908" stopOpacity="0.7" />
         </linearGradient>
+
+        {/* Ткань: свет слева сверху, тень справа снизу. */}
+        <linearGradient id={`${gid}-cloth`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor={fabric.light} />
+          <stop offset="45%" stopColor={fabric.base} />
+          <stop offset="100%" stopColor={fabric.dark} />
+        </linearGradient>
+
+        {/* Зерно ткани — иначе заливка выглядит пластиковой. */}
+        <filter id={`${gid}-grain`} x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={variant} />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+
+        <clipPath id={`${gid}-clip`}>
+          {parts
+            .filter((part) => part.role === 'body')
+            .map((part, i) => (
+              <path key={i} d={part.d} />
+            ))}
+        </clipPath>
       </defs>
 
-      <rect width="400" height="480" fill="#1a1816" />
-      <rect width="400" height="480" fill={`url(#${gid}-glow)`} />
-      <rect width="400" height="480" fill={`url(#${gid}-bg)`} />
+      <rect width="400" height="533" fill="#161412" />
+      <rect width="400" height="533" fill={`url(#${gid}-glow)`} />
 
-      <g transform={`rotate(${angle} 200 240)`} opacity="0.12">
-        <rect x="-60" y={120 + tint * 8} width="520" height="1.5" fill="#e6dcc8" />
-        <rect x="-60" y={320 - tint * 6} width="520" height="1" fill="#e6dcc8" opacity="0.6" />
+      <g
+        transform={
+          `translate(0 ${GARMENT_OFFSET_Y}) rotate(${angle} 200 260)` +
+          ' translate(200 266) scale(1.08) translate(-200 -266)'
+        }
+      >
+        {/* Тень на «полу» под вещью. */}
+        <ellipse cx="200" cy="446" rx="132" ry="17" fill="#000" opacity="0.5" />
+
+        {parts.map((part, i) => {
+          if (part.role === 'body') {
+            return <path key={i} d={part.d} fill={`url(#${gid}-cloth)`} />
+          }
+          if (part.role === 'shade') {
+            return <path key={i} d={part.d} fill={fabric.dark} opacity="0.5" />
+          }
+          if (part.role === 'light') {
+            return <path key={i} d={part.d} fill={fabric.light} opacity="0.35" />
+          }
+          if (part.role === 'accent') {
+            return <path key={i} d={part.d} fill={fabric.seam} opacity="0.85" />
+          }
+          return (
+            <path
+              key={i}
+              d={part.d}
+              fill="none"
+              stroke={fabric.seam}
+              strokeWidth={part.w ?? 2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.7"
+            />
+          )
+        })}
+
+        {/* Зерно ложится только на ткань, не на фон. */}
+        <g clipPath={`url(#${gid}-clip)`} opacity="0.16">
+          <rect width="400" height="533" filter={`url(#${gid}-grain)`} />
+        </g>
       </g>
 
-      <path d={path} fill={`url(#${gid}-fill)`} />
-      <path d={path} fill="none" stroke="#847a6c" strokeWidth="1.3" opacity="0.65" />
+      <rect width="400" height="533" fill={`url(#${gid}-vign)`} />
 
       {specks.map((s, i) => (
         <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#e6dcc8" opacity={s.o} />
       ))}
-
     </svg>
   )
 })
@@ -134,7 +195,7 @@ export const Media = memo(function Media({
       style={{ aspectRatio: ratio }}
     >
       {isPlaceholder && placeholder ? (
-        <PlaceholderArt shape={placeholder.shape} variant={placeholder.variant} />
+        <PlaceholderArt shape={placeholder.shape} variant={placeholder.variant} color={placeholder.color} />
       ) : (
         <img
           src={src ?? ''}

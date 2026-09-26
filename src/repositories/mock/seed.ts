@@ -23,13 +23,13 @@ const GRAPHITE: ProductColor = { code: 'graphite', title: 'Графит', hex: '
 const SAND: ProductColor = { code: 'sand', title: 'Песочный', hex: '#b3a68c' }
 
 export const CATEGORIES: Category[] = [
-  { id: 'cat-hoodies', slug: 'hoodies', title: 'Худи', description: 'Плотный хлопок с начёсом, свободный крой.', image: 'placeholder:hoodie/1', sortOrder: 1, isActive: true },
-  { id: 'cat-tshirts', slug: 'tshirts', title: 'Футболки', description: 'Базовые и принтованные футболки.', image: 'placeholder:tshirt/1', sortOrder: 2, isActive: true },
-  { id: 'cat-longsleeves', slug: 'longsleeves', title: 'Лонгсливы', description: 'Лонгсливы из плотного джерси.', image: 'placeholder:longsleeve/1', sortOrder: 3, isActive: true },
-  { id: 'cat-pants', slug: 'pants', title: 'Штаны', description: 'Джоггеры и карго свободной посадки.', image: 'placeholder:pants/1', sortOrder: 4, isActive: true },
-  { id: 'cat-caps', slug: 'caps', title: 'Кепки', description: 'Кепки и шапки с вышивкой логотипа.', image: 'placeholder:cap/1', sortOrder: 5, isActive: true },
-  { id: 'cat-bags', slug: 'bags', title: 'Сумки', description: 'Шопперы и сумки из плотного канваса.', image: 'placeholder:bag/1', sortOrder: 6, isActive: true },
-  { id: 'cat-accessories', slug: 'accessories', title: 'Аксессуары', description: 'Мелочи, которые завершают образ.', image: 'placeholder:beanie/1', sortOrder: 7, isActive: true },
+  { id: 'cat-hoodies', slug: 'hoodies', title: 'Худи', description: 'Плотный хлопок с начёсом, свободный крой.', image: 'placeholder:hoodie/1/black', sortOrder: 1, isActive: true },
+  { id: 'cat-tshirts', slug: 'tshirts', title: 'Футболки', description: 'Базовые и принтованные футболки.', image: 'placeholder:tshirt/1/cream', sortOrder: 2, isActive: true },
+  { id: 'cat-longsleeves', slug: 'longsleeves', title: 'Лонгсливы', description: 'Лонгсливы из плотного джерси.', image: 'placeholder:longsleeve/1/graphite', sortOrder: 3, isActive: true },
+  { id: 'cat-pants', slug: 'pants', title: 'Штаны', description: 'Джоггеры и карго свободной посадки.', image: 'placeholder:pants/1/graphite', sortOrder: 4, isActive: true },
+  { id: 'cat-caps', slug: 'caps', title: 'Кепки', description: 'Кепки и шапки с вышивкой логотипа.', image: 'placeholder:cap/1/black', sortOrder: 5, isActive: true },
+  { id: 'cat-bags', slug: 'bags', title: 'Сумки', description: 'Шопперы и сумки из плотного канваса.', image: 'placeholder:bag/1/cream', sortOrder: 6, isActive: true },
+  { id: 'cat-accessories', slug: 'accessories', title: 'Аксессуары', description: 'Мелочи, которые завершают образ.', image: 'placeholder:beanie/1/black', sortOrder: 7, isActive: true },
 ]
 
 export const COLLECTIONS: Collection[] = [
@@ -78,10 +78,12 @@ interface SeedProductInput {
   createdAt: string
 }
 
-function buildImages(shape: string, count: number): ProductImage[] {
+function buildImages(shape: string, count: number, color: string): ProductImage[] {
   return Array.from({ length: count }, (_, i) => ({
-    id: `${shape}-img-${i + 1}`,
-    url: `placeholder:${shape}/${i + 1}`,
+    id: `${shape}-${color}-img-${i + 1}`,
+    // Цвет третьим сегментом: карточка рисует вещь в цвете товара,
+    // а не одинаково-серой для всего каталога.
+    url: `placeholder:${shape}/${i + 1}/${color}`,
     alt: null,
     sortOrder: i,
     isPrimary: i === 0,
@@ -116,7 +118,7 @@ function buildProduct(input: SeedProductInput): Product {
     categoryId: input.categoryId,
     collectionId: input.collectionId,
     color: input.color,
-    images: buildImages(input.shape, 4),
+    images: buildImages(input.shape, 4, input.color.code),
     videoUrl: null,
     variants: buildVariants(id, input.sku, input.sizes, input.stock),
     tags: input.tags,

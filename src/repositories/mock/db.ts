@@ -21,6 +21,7 @@ import type {
 } from '@/domain/types'
 import { readStorage, writeStorage, STORAGE_KEYS } from '@/lib/storage'
 import { CATEGORIES, COLLECTIONS, HOMEPAGE_BLOCKS, PRODUCTS, PROMOCODES } from './seed'
+import { buildDemoData } from './demo-orders'
 
 export interface MockDb {
   version: number
@@ -43,7 +44,7 @@ export interface MockDb {
   currentUserId: string | null
 }
 
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 /** Демонстрационный владелец магазина — вход в админку без backend. */
 export const DEMO_ADMIN: User = {
@@ -69,14 +70,16 @@ const DEMO_CUSTOMER: User = {
 }
 
 function createInitialDb(): MockDb {
+  const products = structuredClone(PRODUCTS)
+  const demo = buildDemoData(products, DEMO_CUSTOMER)
   return {
     version: DB_VERSION,
-    products: structuredClone(PRODUCTS),
+    products,
     categories: structuredClone(CATEGORIES),
     collections: structuredClone(COLLECTIONS),
     promocodes: structuredClone(PROMOCODES),
     homepageBlocks: structuredClone(HOMEPAGE_BLOCKS),
-    users: [DEMO_ADMIN, DEMO_CUSTOMER],
+    users: [DEMO_ADMIN, DEMO_CUSTOMER, ...demo.users],
     addresses: [
       {
         id: 'adr-1', userId: 'usr-demo', label: 'Дом', city: 'Москва',
@@ -84,12 +87,12 @@ function createInitialDb(): MockDb {
         postalCode: '119991', comment: null, isDefault: true,
       },
     ],
-    orders: [],
-    orderHistory: [],
+    orders: demo.orders,
+    orderHistory: demo.orderHistory,
     notifications: [],
     auditLog: [],
     favorites: {},
-    orderCounter: 1041,
+    orderCounter: demo.orderCounter,
     idempotencyKeys: {},
     currentUserId: null,
   }

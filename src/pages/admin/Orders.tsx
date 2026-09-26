@@ -163,7 +163,6 @@ export default function AdminOrders() {
                   <tr>
                     <th>Заказ</th>
                     <th>Покупатель</th>
-                    <th>Телефон</th>
                     <th>Дата</th>
                     <th>Оплата</th>
                     <th>Доставка</th>
@@ -177,8 +176,10 @@ export default function AdminOrders() {
                       <td className="td--strong td--mono" style={{ color: 'var(--c-cream-100)' }}>
                         {order.publicOrderNumber}
                       </td>
-                      <td>{order.customerName}</td>
-                      <td className="td--mono">{order.phone}</td>
+                      <td>
+                        {order.customerName}
+                        <span className="table__sub td--mono">{order.phone}</span>
+                      </td>
                       <td className="td--mono">{formatDateTime(order.createdAt)}</td>
                       <td>{PAYMENT_LABELS[order.paymentMethod]}</td>
                       <td>{DELIVERY_LABELS[order.deliveryMethod]}</td>

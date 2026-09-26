@@ -201,6 +201,7 @@ button.admin__link {
 .table tbody tr:last-child td { border-bottom: none; }
 .table td--strong { color: var(--c-cream-100); }
 .table td--mono { font-family: var(--f-mono); }
+.table__sub { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--c-text-muted); }
 .table td--wrap { white-space: normal; min-width: 200px; }
 .table--clickable tbody tr { cursor: pointer; }
 

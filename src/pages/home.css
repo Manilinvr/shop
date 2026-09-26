@@ -37,8 +37,10 @@
   letter-spacing: -0.04em;
   text-transform: uppercase;
   color: var(--c-cream-100);
-  /* Длинное слово не должно распирать сетку и уезжать за экран */
-  overflow-wrap: anywhere;
+  /* break-word, а не anywhere: слово переносится целиком и рвётся только
+     если не помещается даже на своей строке. Кегль подобран так, чтобы
+     самое длинное слово заголовка («ДВИЖЕНИИ») влезало в колонку. */
+  overflow-wrap: break-word;
   hyphens: manual;
 }
 

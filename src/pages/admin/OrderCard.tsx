@@ -34,6 +34,13 @@ import { backend, toUserMessage } from '@/repositories'
 import './admin.css'
 import '../checkout.css'
 
+/** Коды служб доставки → человеческие названия. */
+const PROVIDER_LABELS: Record<string, string> = {
+  CDEK: 'СДЭК',
+  POST_RF: 'Почта России',
+  MANILI: 'Самовывоз MANILI',
+}
+
 export default function OrderCard() {
   const { orderId } = useParams<{ orderId: string }>()
   const [order, setOrder] = useState<Order | null>(null)
@@ -297,7 +304,7 @@ export default function OrderCard() {
               </div>
               <div className="kv__row">
                 <span className="kv__key">Служба</span>
-                <span className="kv__value">{current.deliveryProvider ?? '—'}</span>
+                <span className="kv__value">{current.deliveryProvider ? (PROVIDER_LABELS[current.deliveryProvider] ?? current.deliveryProvider) : '—'}</span>
               </div>
               {current.trackingNumber && (
                 <div className="kv__row">

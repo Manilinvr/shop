@@ -352,8 +352,8 @@ export default function Login() {
         {config.backend === 'mock' && (
           <div className="auth__demo">
             <p className="auth__demo-text">
-              Backend ещё не подключён. Чтобы посмотреть админ-панель, войдите
-              демо-администратором.
+              Это демо-версия магазина: можно оформить заказ и заглянуть
+              в админ-панель. Данные живут только в вашем браузере.
             </p>
             <Button
               variant="secondary"

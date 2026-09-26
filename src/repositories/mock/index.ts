@@ -1065,7 +1065,8 @@ const analytics: AnalyticsRepository = {
     return tick<AnalyticsSummary>({
       revenue,
       ordersCount: inPeriod.length,
-      averageOrderValue: paid.length ? Math.round(revenue / paid.length) : 0,
+      // Средний чек — в целых рублях, копейки в сводке только шумят.
+      averageOrderValue: paid.length ? Math.round(revenue / paid.length / 100) * 100 : 0,
       customersCount: db.users.filter((u) => u.role === 'CUSTOMER').length,
       newCustomers: db.users.filter((u) => u.createdAt >= period.from && u.createdAt <= period.to).length,
       repeatPurchaseRate: customerIds.size ? repeatCustomers.length / customerIds.size : 0,

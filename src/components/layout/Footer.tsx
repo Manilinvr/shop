@@ -195,7 +195,17 @@ export function Footer() {
             <span className="footer__pay-chip">СБП</span>
           </div>
 
-          <p className="footer__copy">© {new Date().getFullYear()} MANILI</p>
+          <p className="footer__copy">
+            © {new Date().getFullYear()} MANILI
+            {config.backend === 'mock' && (
+              <>
+                {' · '}
+                <Link to="/login" className="footer__demo">
+                  демо-версия — загляните в админку
+                </Link>
+              </>
+            )}
+          </p>
         </div>
       </div>
 

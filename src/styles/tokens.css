@@ -72,7 +72,7 @@
   --fs-2xl: clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem);
   --fs-3xl: clamp(2rem, 1.4rem + 2.6vw, 4rem);
   --fs-4xl: clamp(2.6rem, 1.5rem + 4.6vw, 6.5rem);
-  --fs-hero: clamp(2.6rem, 1.1rem + 4.6vw, 7rem);
+  --fs-hero: clamp(2.4rem, 1rem + 3.9vw, 5.6rem);
 
   --lh-tight: 0.92;
   --lh-snug: 1.1;
